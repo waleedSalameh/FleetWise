@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="FleetWise.BLL/FleetWise.BLL.csproj" />
+  <Project Path="FleetWise.DAL/FleetWise.DAL.csproj" />
+  <Project Path="FleetWise/FleetWise.API.csproj" />
+</Solution>
