@@ -1,0 +1,369 @@
+<div class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>{{ 'fuel.fueling_records.fueling_records' | translate }}</h1>
+      <p>{{ 'fuel.ui.071' | translate }}</p>
+    </div>
+
+    <div class="header-actions"><button class="add-button" (click)="openTransfer()"><i class="pi pi-share-alt"></i>{{ 'fuel.ui.072' | translate }}</button><button class="add-button" (click)="openAddDialog()">
+      <i class="pi pi-plus"></i>
+      {{ 'fuel.fueling_records.add_fuel_record' | translate }}
+    </button></div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div class="summary-icon blue">
+        <i class="pi pi-list"></i>
+      </div>
+      <div>
+        <span>{{ 'fuel.fueling_records.total_records' | translate }}</span>
+        <h3>{{ totalRecords }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon green">
+        <i class="pi pi-database"></i>
+      </div>
+      <div>
+        <span>{{ 'fuel.fueling_records.internal_records' | translate }}</span>
+        <h3>{{ internalRecords }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon orange">
+        <i class="pi pi-building"></i>
+      </div>
+      <div>
+        <span>{{ 'fuel.fueling_records.external_records' | translate }}</span>
+        <h3>{{ externalRecords }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon purple">
+        <i class="pi pi-wallet"></i>
+      </div>
+      <div>
+        <span>{{ 'fuel.fueling_records.total_fuel_cost' | translate }}</span>
+        <h3>{{ totalFuelCost | number:'1.2-2' }} {{ 'fuel.currency_jod' | translate }}</h3>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card">
+
+    <div class="table-toolbar">
+      <div>
+        <h3>{{ 'fuel.fueling_records.fueling_history' | translate }}</h3>
+      </div>
+
+      <div class="search-box">
+        <i class="pi pi-search"></i>
+        <input type="text" [placeholder]="'fuel.fueling_records.search_by_plate_id_or_station' | translate" [(ngModel)]="searchText">
+      </div>
+      <div class="fuel-filters"><select [attr.aria-label]="'fuel.filter_vehicle' | translate" [(ngModel)]="filterVehicleId"><option [ngValue]="0">{{ 'fuel.ui.073' | translate }}</option><option *ngFor="let vehicle of vehicles" [ngValue]="vehicle.vehicleId">{{ vehicle.plateNumber }}</option></select><select [attr.aria-label]="'fuel.filter_source' | translate" [(ngModel)]="filterSource"><option value="all">{{ 'fuel.ui.074' | translate }}</option><option [ngValue]="FuelSourceType.Internal">{{ 'Internal' | translate }}</option><option [ngValue]="FuelSourceType.External">{{ 'External' | translate }}</option></select><input [aria-label]="'fuel.ui.075' | translate" type="date" [(ngModel)]="filterStart"><input [aria-label]="'fuel.ui.076' | translate" type="date" [(ngModel)]="filterEnd"></div>
+    </div>
+
+    <div class="table-responsive">
+
+      <table class="vehicles-table">
+
+        <thead>
+          <tr>
+            <th>{{ 'fuel.fueling_records.id' | translate }}</th>
+            <th>{{ 'fuel.fueling_records.vehicle_plate' | translate }}</th>
+            <th>{{ 'fuel.fueling_records.date' | translate }}</th>
+            <th>{{ 'fuel.fueling_records.fuel_source' | translate }}</th>
+            <th>{{ 'fuel.fueling_records.quantity_l' | translate }}</th>
+            <th>{{ 'fuel.fueling_records.price_liter' | translate }} ({{ 'fuel.currency_jod' | translate }})</th>
+            <th>{{ 'fuel.fueling_records.total_cost' | translate }} ({{ 'fuel.currency_jod' | translate }})</th>
+            <th>{{ 'fuel.fueling_records.odometer' | translate }}</th>
+            <th>{{ 'fuel.fueling_records.station_batches' | translate }}</th>
+            <th>{{ 'fuel.fueling_records.actions' | translate }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let record of filteredRecords">
+
+            <td>#{{ record.fuelRecordId }}</td>
+
+            <td>
+              <strong>{{ record.plateNumber }}</strong>
+            </td>
+
+            <td>{{ formatDate(record.date) }}</td>
+
+            <td>
+              <span class="source-badge" [ngClass]="getSourceClass(record.fuelSourceType)">
+                {{ (getSourceLabel(record.fuelSourceType)) | translate }}
+              </span>
+            </td>
+
+            <td>{{ record.quantity | number:'1.2-2' }}</td>
+
+            <td>{{ record.pricePerLiter | number:'1.3-3' }}</td>
+
+            <td>
+              <strong>{{ record.totalCost | number:'1.2-2' }}</strong>
+            </td>
+
+            <td>{{ record.odometer | number }}</td>
+
+            <td>
+              <span *ngIf="record.fuelSourceType === FuelSourceType.External">
+                {{ record.stationName || '-' }}
+              </span>
+
+              <span *ngIf="record.fuelSourceType === FuelSourceType.Internal">
+                {{ record.batches.length }} {{ 'fragments.batches' | translate }}
+              </span>
+            </td>
+
+            <td>
+              <div class="action-buttons">
+
+                <button class="icon-button edit" *ngIf="record.fuelSourceType === FuelSourceType.External" [title]="'fuel.fueling_records.edit' | translate"
+                  (click)="openEditDialog(record)">
+                  <i class="pi pi-pencil"></i>
+                </button>
+
+                <button class="icon-button delete" [title]="'fuel.fueling_records.delete' | translate" (click)="confirmDelete(record)">
+                  <i class="pi pi-trash"></i>
+                </button>
+
+              </div>
+            </td>
+
+          </tr>
+
+          <tr *ngIf="loading"><td colspan="10" class="empty-state">{{ 'fuel.ui.084' | translate }}</td></tr><tr *ngIf="!loading && filteredRecords.length === 0">
+            <td colspan="10">
+              <div class="empty-state">
+                <i class="pi pi-inbox"></i>
+                <h3>{{ 'fuel.fueling_records.no_fuel_records_found' | translate }}</h3>
+                <p>{{ 'fuel.fueling_records.there_are_no_fueling_records_matching_your_search' | translate }}</p>
+              </div>
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+  <div class="table-card transfer-card"><div class="table-toolbar"><h3>{{ 'fuel.ui.077' | translate }}</h3><div class="search-box"><i class="pi pi-search"></i><input [aria-label]="'fuel.ui.078' | translate" [placeholder]="'fuel.ui.078' | translate" [(ngModel)]="transferSearch"></div></div><div class="table-responsive"><table class="vehicles-table"><thead><tr><th>{{ 'ID' | translate }}</th><th>{{ 'fuel.ui.079' | translate }}</th><th>{{ 'fuel.ui.043' | translate }}</th><th>{{ 'fuel.ui.080' | translate }}</th><th>{{ 'fuel.ui.081' | translate }}</th><th>{{ 'fuel.ui.082' | translate }}</th><th>{{ 'fuel.ui.058' | translate }}</th><th>{{ 'fuel.ui.064' | translate }}</th></tr></thead><tbody><tr *ngFor="let transfer of filteredTransfers"><td>#{{ transfer.id }}</td><td>{{ transfer.sourcePlateNumber }}</td><td>{{ formatDate(transfer.occurredAt) }}</td><td><div *ngFor="let destination of transfer.destinations">{{ (destination.destinationType === FuelTransferDestinationType.Inventory ? 'Company Inventory' : 'Vehicle') | translate }} {{ destination.destinationType === FuelTransferDestinationType.Inventory ? '' : destination.destinationPlateNumber }} - {{ destination.quantity | number:'1.2-2' }} {{ 'fuel.unit_liter' | translate }}</div></td><td>{{ transferTotalQuantity(transfer) | number:'1.2-2' }} {{ 'fuel.unit_liter' | translate }}</td><td>{{ transferTotalValue(transfer) | number:'1.2-2' }}</td><td>{{ transfer.notes || '—' }}</td><td><button class="icon-button delete" [aria-label]="'fuel.ui.083' | translate" [title]="'fuel.ui.083' | translate" (click)="deleteTransfer(transfer)"><i class="pi pi-trash"></i></button></td></tr><tr *ngIf="transferLoading"><td colspan="8" class="empty-state">{{ 'fuel.ui.085' | translate }}</td></tr><tr *ngIf="!transferLoading && filteredTransfers.length === 0"><td colspan="8" class="empty-state">{{ 'fuel.ui.086' | translate }}</td></tr></tbody></table></div></div>
+
+</div>
+
+
+<!-- Add / Edit Dialog -->
+<p-dialog [(visible)]="dialogVisible" [modal]="true" [draggable]="false" [resizable]="false"
+  [style]="{ width: '650px', maxWidth: '95vw' }" [header]="(isEditMode ? 'Edit Fuel Record' : 'Add Fuel Record') | translate"
+  (onHide)="closeDialog()">
+
+  <div class="vehicle-form">
+
+    <p class="dialog-description">
+      {{ (isEditMode
+      ? 'Update external fueling record information.'
+      : 'Enter the vehicle fueling details below.') | translate }}
+    </p>
+
+    <!-- Fuel Source -->
+    <div class="form-field full-width">
+      <label>{{ 'fuel.fueling_records.fuel_source' | translate }}</label>
+
+      <select [(ngModel)]="selectedSource" [disabled]="isEditMode" (ngModelChange)="onSourceChange()">
+
+        <option [ngValue]="FuelSourceType.External">
+          {{ 'fuel.fueling_records.external_fuel_station' | translate }}
+        </option>
+
+        <option [ngValue]="FuelSourceType.Internal">
+          {{ 'fuel.fueling_records.internal_company_inventory' | translate }}
+        </option>
+
+      </select>
+    </div>
+
+    <div class="form-grid">
+
+      <!-- Vehicle -->
+      <div class="form-field">
+        <label>{{ 'fuel.fueling_records.vehicle' | translate }} <span>*</span></label>
+
+        <select [(ngModel)]="form.vehicleId">
+          <option [ngValue]="0" disabled>{{ 'fuel.fueling_records.select_vehicle' | translate }}</option>
+
+          <option *ngFor="let vehicle of vehicles" [ngValue]="vehicle.vehicleId">
+            {{ vehicle.plateNumber }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Date -->
+      <div class="form-field">
+        <label>{{ 'fuel.fueling_records.date' | translate }} <span>*</span></label>
+
+        <input type="datetime-local" [(ngModel)]="form.date">
+      </div>
+
+      <!-- Odometer -->
+      <div class="form-field">
+        <label>{{ 'fuel.fueling_records.odometer' | translate }} <span>*</span></label>
+
+        <input type="number" min="0" step="1" [ngModel]="form.odometer" (ngModelChange)="onOdometerChange($event)"
+          [placeholder]="'fuel.fueling_records.enter_odometer' | translate">
+      </div>
+
+      <!-- Quantity -->
+      <div class="form-field">
+        <label>{{ 'fuel.fueling_records.quantity_liters' | translate }} <span>*</span></label>
+
+        <input type="number" min="0.01" step="0.01" [(ngModel)]="form.quantity" [placeholder]="'fuel.fueling_records.enter_quantity' | translate">
+      </div>
+
+    </div>
+
+    <!-- External Fields -->
+    <div class="form-grid" *ngIf="selectedSource === FuelSourceType.External">
+
+      <div class="form-field">
+        <label>{{ 'fuel.fueling_records.price_per_liter' | translate }} <span>*</span></label>
+
+        <input type="number" min="0.001" step="0.001" [(ngModel)]="form.pricePerLiter" [placeholder]="'fuel.fueling_records.enter_price' | translate">
+      </div>
+
+      <div class="form-field">
+        <label>{{ 'fuel.fueling_records.station_name' | translate }} <span>*</span></label>
+
+        <input type="text" maxlength="150" [(ngModel)]="form.stationName" [placeholder]="'fuel.fueling_records.enter_station_name' | translate">
+      </div>
+
+    </div>
+
+    <!-- Internal Batches -->
+    <div class="internal-section" *ngIf="selectedSource === FuelSourceType.Internal">
+
+      <div class="section-heading">
+        <div>
+          <h3>{{ 'fuel.fueling_records.fuel_batches' | translate }}</h3>
+          <p>{{ 'fuel.fueling_records.select_one_or_more_inventory_batches' | translate }}</p>
+        </div>
+
+        <button type="button" class="add-batch-button" (click)="addBatchRow()">
+          <i class="pi pi-plus"></i>
+          {{ 'fuel.fueling_records.add_batch' | translate }}
+        </button>
+      </div>
+
+      <div class="batch-row" *ngFor="let batch of selectedBatches; let i = index">
+
+        <div class="form-field">
+          <label>{{ 'fuel.fueling_records.batch' | translate }}</label>
+
+          <select [(ngModel)]="batch.fuelPurchaseId">
+
+            <option [ngValue]="0" disabled>{{ 'fuel.fueling_records.select_batch' | translate }}</option>
+
+            <option *ngFor="let purchase of availableBatches" [ngValue]="purchase.fuelPurchaseId">
+
+              #{{ purchase.fuelPurchaseId }}
+              -
+              {{ purchase.remainingQuantity | number:'1.2-2' }} {{ 'fuel.unit_liter' | translate }} {{ 'vehicles.company_vehicles.available' | translate }}
+              -
+              {{ purchase.pricePerLiter | number:'1.3-3' }} / {{ 'fuel.unit_liter' | translate }}
+
+            </option>
+
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>{{ 'fuel.fueling_records.quantity_l' | translate }}</label>
+
+          <input type="number" min="0.01" step="0.01" [(ngModel)]="batch.quantity" [placeholder]="'fuel.fueling_records.enter_quantity' | translate">
+        </div>
+
+        <button type="button" class="remove-batch-button" [title]="'fuel.fueling_records.remove_batch' | translate" (click)="removeBatchRow(i)"
+          [disabled]="selectedBatches.length === 1">
+          <i class="pi pi-trash"></i>
+        </button>
+
+      </div>
+
+      <div class="batch-summary">
+
+        <div>
+          <span>{{ 'fuel.fueling_records.total_selected_quantity' | translate }}</span>
+          <strong>
+            {{ internalTotalQuantity | number:'1.2-2' }} {{ 'fuel.unit_liter' | translate }}
+          </strong>
+        </div>
+
+        <div>
+          <span>{{ 'fuel.fueling_records.calculated_total_cost' | translate }}</span>
+          <strong>
+            {{ internalTotalCost | number:'1.2-2' }}
+          </strong>
+        </div>
+
+        <div>
+          <span>{{ 'fuel.fueling_records.fuel_record_quantity' | translate }}</span>
+          <strong>
+            {{ form.quantity | number:'1.2-2' }} {{ 'fuel.unit_liter' | translate }}
+          </strong>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- External Cost Preview -->
+    <div class="cost-preview" *ngIf="selectedSource === FuelSourceType.External">
+
+      <span>{{ 'fuel.fueling_records.estimated_total_cost' | translate }}</span>
+
+      <strong>
+        {{ (form.quantity * form.pricePerLiter) | number:'1.2-2' }}
+      </strong>
+
+    </div>
+
+    <!-- Dialog Actions -->
+    <div class="dialog-actions">
+
+      <button type="button" class="cancel-button" (click)="closeDialog()" [disabled]="isSaving">
+        {{ 'fuel.fueling_records.cancel' | translate }}
+      </button>
+
+      <button type="button" class="save-button" (click)="saveRecord()" [disabled]="isSaving">
+
+        <i class="pi" [ngClass]="isSaving ? 'pi-spin pi-spinner' : 'pi-check'">
+        </i>
+
+        {{ (isSaving ? 'Saving...' : (isEditMode ? 'Update Record' : 'Save Record')) | translate }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+</p-dialog>
+
+<p-dialog [header]="'fuel.ui.072' | translate" [(visible)]="transferVisible" [modal]="true" [draggable]="false" [resizable]="false" [style]="{width:'800px',maxWidth:'95vw'}"><div class="vehicle-form transfer-form"><p class="dialog-description">{{ 'fuel.ui.088' | translate }}</p><div class="form-grid"><div class="form-field"><label>{{ 'fuel.extra.023' | translate }}</label><select [(ngModel)]="transferForm.sourceVehicleId"><option [ngValue]="0" disabled>{{ 'fuel.ui.091' | translate }}</option><option *ngFor="let v of vehicles" [ngValue]="v.vehicleId">{{ v.plateNumber }}</option></select></div><div class="form-field"><label>{{ 'fuel.extra.024' | translate }}</label><input type="datetime-local" [(ngModel)]="transferForm.occurredAt"></div><div class="form-field full-width"><label>{{ 'fuel.ui.058' | translate }}</label><input [(ngModel)]="transferForm.notes" maxlength="1000"></div></div><div class="section-heading"><h3>{{ 'fuel.ui.080' | translate }}</h3><button type="button" class="add-batch-button" (click)="addDestination()"><i class="pi pi-plus"></i>{{ 'fuel.ui.089' | translate }}</button></div><div class="batch-row transfer-row" *ngFor="let d of transferForm.destinations; let i = index"><div class="form-field"><label>{{ 'fuel.ui.052' | translate }}</label><select [(ngModel)]="d.destinationType" (ngModelChange)="d.destinationVehicleId=null"><option [ngValue]="FuelTransferDestinationType.Vehicle">{{ 'fuel.ui.015' | translate }}</option><option [ngValue]="FuelTransferDestinationType.Inventory">{{ 'fuel.ui.087' | translate }}</option></select></div><div class="form-field" *ngIf="d.destinationType === FuelTransferDestinationType.Vehicle"><label>{{ 'fuel.ui.090' | translate }}</label><select [(ngModel)]="d.destinationVehicleId"><option [ngValue]="null">{{ 'fuel.ui.091' | translate }}</option><option *ngFor="let v of vehicles" [ngValue]="v.vehicleId" [disabled]="v.vehicleId === transferForm.sourceVehicleId">{{ v.plateNumber }}</option></select></div><div class="form-field transfer-quantity"><label>{{ 'fuel.ui.092' | translate }}</label><input type="number" min="0.01" step="0.01" [(ngModel)]="d.quantity"></div><button class="remove-batch-button" type="button" [aria-label]="'fuel.ui.093' | translate" (click)="removeDestination(i)"><i class="pi pi-trash"></i></button></div><div class="batch-summary"><div><span>{{ 'fuel.ui.080' | translate }}</span><strong>{{ transferForm.destinations.length }}</strong></div><div><span>{{ 'fuel.ui.081' | translate }}</span><strong>{{ transferQuantity | number:'1.2-2' }} {{ 'fuel.unit_liter' | translate }}</strong></div></div><div class="dialog-actions"><button class="cancel-button" (click)="transferVisible=false" [disabled]="transferSaving">{{ 'fuel.ui.059' | translate }}</button><button class="save-button" (click)="saveTransfer()" [disabled]="transferSaving || !transferForm.destinations.length">{{ (transferSaving ? 'Saving...' : 'Transfer Fuel') | translate }}</button></div></div></p-dialog>

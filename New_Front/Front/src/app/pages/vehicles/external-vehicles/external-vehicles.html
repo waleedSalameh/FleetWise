@@ -1,0 +1,220 @@
+<div class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>{{ 'vehicles.external_vehicles.external_vehicles' | translate }}</h1>
+    </div>
+
+    <button class="add-button" (click)="openAddDialog()">
+      <i class="pi pi-plus"></i>
+      {{ 'vehicles.external_vehicles.add_external_vehicle' | translate }}
+    </button>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+
+    <div class="summary-card">
+      <div class="summary-icon blue">
+        <i class="pi pi-truck"></i>
+      </div>
+
+      <div>
+        <span>{{ 'vehicles.external_vehicles.total_external_vehicles' | translate }}</span>
+        <h2>{{ vehicles.length }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon green">
+        <i class="pi pi-users"></i>
+      </div>
+
+      <div>
+        <span>{{ 'vehicles.external_vehicles.registered_drivers' | translate }}</span>
+        <h2>{{ vehicles.length }}</h2>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Vehicles Table -->
+  <div class="table-container">
+
+    <!-- Table Header -->
+    <div class="table-header">
+
+      <div>
+        <h2>{{ 'vehicles.external_vehicles.external_vehicles_list' | translate }}</h2>
+      </div>
+
+      <!-- Search -->
+      <div class="search-box">
+        <i class="pi pi-search"></i>
+
+        <input type="text" [(ngModel)]="searchText" [placeholder]="'vehicles.external_vehicles.search_by_plate_driver_or_phone' | translate" />
+
+        <button *ngIf="searchText" type="button" (click)="searchText = ''" [title]="'vehicles.external_vehicles.clear_search' | translate">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="loading-state">
+      {{ 'vehicles.external_vehicles.loading_external_vehicles' | translate }}
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="errorMessage && !displayVehicleDialog" class="error-state">
+      {{ errorMessage | translate }}
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && vehicles.length === 0 && !errorMessage" class="empty-state">
+      <i class="pi pi-truck"></i>
+      <h3>{{ 'vehicles.external_vehicles.no_external_vehicles_found' | translate }}</h3>
+      <p>{{ 'vehicles.external_vehicles.add_your_first_external_vehicle_to_get_started' | translate }}</p>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper" *ngIf="!isLoading && filteredVehicles.length > 0">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>{{ 'vehicles.external_vehicles.plate_number' | translate }}</th>
+            <th>{{ 'vehicles.external_vehicles.driver_name' | translate }}</th>
+            <th>{{ 'vehicles.external_vehicles.phone_number' | translate }}</th>
+            <th>{{ 'vehicles.external_vehicles.actions' | translate }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let vehicle of filteredVehicles; let i = index">
+
+            <td>{{ i + 1 }}</td>
+
+            <td>
+              <span class="plate-number">
+                {{ vehicle.plateNumber }}
+              </span>
+            </td>
+
+            <td>{{ vehicle.driverName }}</td>
+
+            <td>{{ vehicle.phoneNumber }}</td>
+
+            <td>
+              <div class="action-buttons">
+
+                <button class="delete-button" [title]="'vehicles.external_vehicles.delete' | translate" (click)="confirmDelete(vehicle.id)">
+                  <i class="pi pi-trash"></i>
+                </button>
+
+              </div>
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+    <!-- Search Empty State -->
+    <div *ngIf="
+        !isLoading &&
+        vehicles.length > 0 &&
+        filteredVehicles.length === 0
+      " class="empty-state">
+      <i class="pi pi-search"></i>
+      <h3>{{ 'vehicles.external_vehicles.no_results_found' | translate }}</h3>
+      <p>{{ 'vehicles.external_vehicles.try_searching_with_a_different_keyword' | translate }}</p>
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- Add External Vehicle Dialog -->
+<p-dialog [(visible)]="displayVehicleDialog" [modal]="true" [draggable]="false" [resizable]="false"
+  [closable]="!isSaving" [dismissableMask]="!isSaving" [style]="{ width: '550px', maxWidth: '95vw' }"
+  [header]="('Add External Vehicle') | translate" (onHide)="closeDialog()">
+
+  <div class="vehicle-form">
+
+    <p class="dialog-description">
+      {{ 'vehicles.external_vehicles.enter_the_external_vehicle_and_driver_information' | translate }}
+    </p>
+
+    <div class="form-grid">
+
+      <!-- Driver Name -->
+      <div class="form-field">
+
+        <label>{{ 'vehicles.external_vehicles.driver_name' | translate }}</label>
+
+        <input type="text" [(ngModel)]="newVehicle.driverName" name="driverName" [placeholder]="'vehicles.external_vehicles.enter_driver_name' | translate"
+          maxlength="100" />
+
+      </div>
+
+      <!-- Plate Number -->
+      <div class="form-field">
+
+        <label>{{ 'vehicles.external_vehicles.plate_number' | translate }}</label>
+
+        <input type="number" [(ngModel)]="newVehicle.plateNumber" name="plateNumber" [placeholder]="'vehicles.external_vehicles.enter_plate_number' | translate"
+          min="1" />
+
+      </div>
+
+      <!-- Phone Number -->
+      <div class="form-field full-width">
+
+        <label>{{ 'vehicles.external_vehicles.phone_number' | translate }}</label>
+
+        <input type="tel" [(ngModel)]="newVehicle.phoneNumber" name="phoneNumber" [placeholder]="'vehicles.external_vehicles.07xxxxxxxx' | translate"
+          maxlength="10" pattern="^07[789][0-9]{7}$" inputmode="numeric" />
+
+      </div>
+
+    </div>
+
+    <!-- Validation Error -->
+    <div class="form-error" *ngIf="errorMessage">
+
+      <i class="pi pi-exclamation-circle"></i>
+      {{ errorMessage | translate }}
+
+    </div>
+
+    <!-- Actions -->
+    <div class="dialog-actions">
+
+      <button type="button" class="cancel-button" (click)="closeDialog()" [disabled]="isSaving">
+        {{ 'vehicles.external_vehicles.cancel' | translate }}
+      </button>
+
+      <button type="button" class="save-button" (click)="saveVehicle()" [disabled]="isSaving">
+
+        <i class="pi pi-check" *ngIf="!isSaving"></i>
+        <i class="pi pi-spin pi-spinner" *ngIf="isSaving"></i>
+
+        {{ (isSaving ? 'Saving...' : 'Add Vehicle') | translate }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+</p-dialog>

@@ -1,0 +1,417 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>{{ (mode() === 'import' ? 'Aqaba Import' : 'Aqaba Export') | translate }}</h1>
+      <p>
+        {{ (mode() === 'import'
+            ? 'Manage bills and incoming containers.'
+            : 'Manage bookings and outgoing containers.') | translate }}
+      </p>
+    </div>
+    <button type="button" class="add-button" (click)="openAddBill()" [disabled]="saving()">
+      <i class="pi pi-plus"></i> {{ (mode() === 'import' ? 'Add Bill' : 'Add Booking') | translate }}
+    </button>
+  </div>
+  <div class="summary-cards">
+    <div class="summary-card">
+      <div class="summary-icon blue"><i class="pi pi-list"></i></div>
+      <div>
+        <span>{{ (mode() === 'import' ? 'Total Bills' : 'Total Bookings') | translate }}</span>
+        <h2>{{ loading() || failed() ? '—' : records().length }}</h2>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon green"><i class="pi pi-box"></i></div>
+      <div>
+        <span>{{ 'containers.incoming_aqaba.total_containers' | translate }}</span>
+        <h2>{{ loading() || failed() ? '—' : totalContainers() }}</h2>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon orange"><i class="pi pi-check-circle"></i></div>
+      <div>
+        <span>{{ 'containers.incoming_aqaba.completed' | translate }}</span>
+        <h2>{{ loading() || failed() ? '—' : completed() }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="table-container">
+    <div class="table-header">
+      <h2>{{ (mode() === 'import' ? 'Import Bills' : 'Export Bookings') | translate }}</h2>
+      <div class="toolbar">
+        <label class="search-box"
+          ><i class="pi pi-search"></i
+          ><input
+            #searchInput
+            type="search"
+            [attr.aria-label]="'containers.incoming_aqaba.search_bills_bookings_and_containers' | translate"
+            [placeholder]="'containers.incoming_aqaba.search_number_customer_or_container' | translate"
+            [value]="search()"
+            (input)="search.set(searchInput.value)" /></label
+        ><select
+          [attr.aria-label]="'containers.incoming_aqaba.filter_by_status' | translate"
+          [value]="statusFilter()"
+          (change)="statusFilter.set(+$any($event.target).value)"
+        >
+          <option value="0">{{ 'containers.incoming_aqaba.all_statuses' | translate }}</option>
+          @for (item of billStatuses; track item.value) {
+            <option [value]="item.value">{{ (item.label) | translate }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (loading()) {
+      <div class="state" role="status">{{ 'containers.incoming_aqaba.loading_records' | translate }}</div>
+    } @else if (failed()) {
+      <div class="state" role="alert">
+        {{ 'containers.incoming_aqaba.could_not_load_records' | translate }} <button type="button" (click)="load()">{{ 'containers.incoming_aqaba.retry' | translate }}</button>
+      </div>
+    } @else if (!filtered().length) {
+      <div class="state">{{ 'containers.incoming_aqaba.no_records_found' | translate }}</div>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>{{ (mode() === 'import' ? 'Bill Number' : 'Booking Number') | translate }}</th>
+              <th>{{ 'containers.incoming_aqaba.customer' | translate }}</th>
+              <th>{{ 'containers.incoming_aqaba.containers' | translate }}</th>
+              <th>{{ 'containers.incoming_aqaba.status' | translate }}</th>
+              <th>{{ 'containers.incoming_aqaba.created' | translate }}</th>
+              <th>{{ 'containers.incoming_aqaba.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (x of filtered(); track x.id) {
+              <tr>
+                <td>{{ x.id }}</td>
+                <td>{{ billNumber(x) }}</td>
+                <td>{{ x.customerName }}</td>
+                <td>{{ x.containerCount }}</td>
+                <td>
+                  <span class="badge">{{ (label(billStatuses, x.status)) | translate }}</span>
+                </td>
+                <td>{{ x.createdAt.slice(0, 10) }}</td>
+                <td class="actions">
+                  <button
+                    type="button"
+                    (click)="openContainers(x)"
+                    [attr.aria-label]="'dynamic.view_containers' | translate: { name: billNumber(x) }"
+                    [title]="'containers.incoming_aqaba.view_containers' | translate"
+                  >
+                    <i class="pi pi-box"></i></button
+                  ><button
+                    type="button"
+                    (click)="openEditBill(x)"
+                    [attr.aria-label]="'dynamic.edit' | translate: { name: billNumber(x) }"
+                    [title]="'containers.incoming_aqaba.edit' | translate"
+                  >
+                    <i class="pi pi-pencil"></i></button
+                  ><button
+                    type="button"
+                    (click)="deleteBill(x)"
+                    [disabled]="deleting()"
+                    [attr.aria-label]="'dynamic.delete' | translate: { name: billNumber(x) }"
+                    [title]="'containers.incoming_aqaba.delete' | translate"
+                  >
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+<p-dialog
+  [header]="(mode() === 'import' ? 'Bill Containers' : 'Booking Containers') | translate"
+  [modal]="true"
+  [visible]="selected() !== null"
+  (visibleChange)="!$event && selected.set(null)"
+  [style]="{ width: '1000px', maxWidth: '96vw' }"
+>
+  @if (selected(); as bill) {
+    <div class="popup-heading">
+      <div>
+        <strong>{{ billNumber(bill) }}</strong
+        ><span>{{ bill.customerName }} · {{ bill.containers.length }} {{ 'containers.incoming_aqaba.containers' | translate }}</span>
+      </div>
+      <button type="button" class="add-button" (click)="openAddContainer()">
+        <i class="pi pi-plus"></i> {{ 'containers.incoming_aqaba.add_container' | translate }}
+      </button>
+    </div>
+    <label class="search-box container-search"
+      ><i class="pi pi-search"></i
+      ><input
+        #containerInput
+        type="search"
+        [attr.aria-label]="'containers.incoming_aqaba.search_containers' | translate"
+        [placeholder]="'containers.incoming_aqaba.search_container_number' | translate"
+        [value]="containerSearch()"
+        (input)="containerSearch.set(containerInput.value)"
+    /></label>
+    @if (!selectedContainers().length) {
+      <div class="state">{{ 'containers.incoming_aqaba.no_containers_found' | translate }}</div>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'containers.incoming_aqaba.container' | translate }}</th>
+              <th>{{ 'containers.incoming_aqaba.type' | translate }}</th>
+              <th>{{ 'containers.incoming_aqaba.size' | translate }}</th>
+              <th>{{ (mode() === 'import' ? 'Shipping Line' : 'Loading Location') | translate }}</th>
+              <th>{{ 'containers.incoming_aqaba.delivery' | translate }}</th>
+              <th>{{ 'containers.incoming_aqaba.weight' | translate }}</th>
+              <th>{{ 'containers.incoming_aqaba.status' | translate }}</th>
+              <th>{{ 'containers.incoming_aqaba.details' | translate }}</th>
+              <th>{{ 'containers.incoming_aqaba.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of selectedContainers(); track c.id) {
+              <tr>
+                <td>{{ c.containerNumber }}</td>
+                <td>{{ (label(containerTypes, c.containerType)) | translate }}</td>
+                <td>{{ (label(containerSizes, c.containerSize)) | translate }}</td>
+                <td>{{ isImportContainer(c) ? c.shippingLineName : c.loadingLocationName }}</td>
+                <td>{{ c.deliveryLocationName }}</td>
+                <td>{{ c.weightInTons }}</td>
+                <td>
+                  <span class="badge">{{ (isImportContainer(c) ? label(aqabaStatuses, c.status) : label(routeStatuses, c.routeStatus)) | translate }}</span>
+                </td>
+                <td>
+                  @if (isImportContainer(c)) {
+                    <small
+                      >{{ 'fragments.vessel' | translate }} {{ c.vesselArrivalDate }}<br />{{ 'fragments.portFree' | translate }} {{ c.portFreeTimeEndDate
+                      }}<br />{{ 'fragments.emptyReturn' | translate }} {{ c.emptyReturnFreeTimeEndDate }}<br />{{ 'fragments.loading' | translate }}
+                      {{ c.containerLoadingDate || '—' }}<br />{{ 'fragments.notes' | translate }} {{ c.notes || '—' }}</small
+                    >
+                  } @else {
+                    <small
+                      >{{ 'fragments.withdrawal' | translate }} {{ c.withdrawalDate.slice(0, 16) }}<br />{{ 'fragments.loading' | translate }}
+                      {{ c.loadingDate.slice(0, 16) }}<br />{{ 'fragments.notes' | translate }} {{ c.notes || '—' }}</small
+                    >
+                  }
+                </td>
+                <td class="actions">
+                  <button type="button" [title]="'containers.incoming_aqaba.edit_container' | translate" (click)="openEditContainer(c)">
+                    <i class="pi pi-pencil"></i></button
+                  ><button
+                    type="button"
+                    [title]="'containers.incoming_aqaba.delete_container' | translate"
+                    [disabled]="deleting()"
+                    (click)="deleteContainer(c)"
+                  >
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</p-dialog>
+<p-dialog
+  [header]="(
+    editingBillId() === null
+      ? mode() === 'import'
+        ? 'Add Bill'
+        : 'Add Booking'
+      : mode() === 'import'
+        ? 'Edit Bill'
+        : 'Edit Booking'
+  ) | translate"
+  [modal]="true"
+  [visible]="billVisible()"
+  (visibleChange)="billVisible.set($event)"
+  [style]="{ width: '800px', maxWidth: '95vw' }"
+  ><form [formGroup]="billForm" (ngSubmit)="saveBill()">
+    <div class="form-grid">
+      <label
+        >{{ (mode() === 'import' ? 'Bill Number' : 'Booking Number') | translate }}<input formControlName="number" maxlength="100" /></label
+      ><label
+        >{{ 'containers.incoming_aqaba.customer' | translate }}<select formControlName="customerId">
+          <option [ngValue]="0">{{ 'containers.incoming_aqaba.select_customer' | translate }}</option>
+          @for (c of customers(); track c.id) {
+            <option [ngValue]="c.id">{{ c.customerName }}</option>
+          }
+        </select></label
+      ><label
+        >{{ 'containers.incoming_aqaba.status' | translate }}<select formControlName="status">
+          @for (item of billStatuses; track item.value) {
+            <option [ngValue]="item.value">{{ (item.label) | translate }}</option>
+          }
+        </select></label
+      >
+    </div>
+    @if (editingBillId() === null) {
+      <div class="create-containers-heading">
+        <h3>{{ 'containers.incoming_aqaba.containers' | translate }}</h3>
+        <button type="button" class="add-button" [disabled]="saving()" (click)="addCreateContainer()">
+          <i class="pi pi-plus"></i> {{ 'containers.incoming_aqaba.add_container' | translate }}
+        </button>
+      </div>
+      <div class="create-containers-list">
+        @for (row of createContainerRows(); track row.id; let i = $index) {
+          <section class="create-container-card" [class.invalid-container]="row.form.touched && row.form.invalid">
+            <div class="create-container-title">
+              <strong>{{ 'containers.incoming_aqaba.container' | translate }} {{ i + 1 }}</strong>
+              @if (createContainerRows().length > 1) {
+                <button type="button" class="remove-container-button" [disabled]="saving()" (click)="removeCreateContainer(row.id)">
+                  {{ 'containers.incoming_aqaba.remove' | translate }}
+                </button>
+              }
+            </div>
+            @if (row.form.touched && row.form.invalid) {
+              <small class="container-validation-error">{{ 'containers.incoming_aqaba.complete_container_fields' | translate }}</small>
+            }
+            <ng-container [ngTemplateOutlet]="mode() === 'import' ? importFields : exportFields" [ngTemplateOutletContext]="{ form: row.form }"></ng-container>
+          </section>
+        }
+      </div>
+    }
+    <div class="dialog-actions">
+      <button
+        type="button"
+        class="cancel-button"
+        (click)="billVisible.set(false)"
+        [disabled]="saving()"
+      >
+        {{ 'containers.incoming_aqaba.cancel' | translate }}</button
+      ><button type="submit" class="add-button" [disabled]="saving()">
+        {{ (saving() ? 'Saving...' : 'Save') | translate }}
+      </button>
+    </div>
+  </form></p-dialog
+>
+<p-dialog
+  [header]="(editingContainerId() === null ? 'Add Container' : 'Edit Container') | translate"
+  [modal]="true"
+  [visible]="containerVisible()"
+  (visibleChange)="containerVisible.set($event)"
+  [style]="{ width: '800px', maxWidth: '95vw' }"
+>
+  @if (mode() === 'import') {
+    <ng-container [ngTemplateOutlet]="importFields" [ngTemplateOutletContext]="{ form: importForm }"></ng-container>
+  } @else {
+    <ng-container [ngTemplateOutlet]="exportFields" [ngTemplateOutletContext]="{ form: exportForm }"></ng-container>
+  }
+  <div class="dialog-actions">
+    <button
+      type="button"
+      class="cancel-button"
+      (click)="containerVisible.set(false)"
+      [disabled]="saving()"
+    >
+      {{ 'containers.incoming_aqaba.cancel' | translate }}</button
+    ><button type="button" class="add-button" [disabled]="saving()" (click)="saveContainer()">
+      {{ (saving() ? 'Saving...' : 'Save') | translate }}
+    </button>
+  </div></p-dialog
+>
+<ng-template #importFields let-form="form"
+  ><div class="form-grid" [formGroup]="form">
+    <label>{{ 'containers.incoming_aqaba.container_number' | translate }}<input formControlName="containerNumber" maxlength="50" /></label
+    ><label
+      >{{ 'containers.incoming_aqaba.type' | translate }}<select formControlName="containerType">
+        @for (item of containerTypes; track item.value) {
+          <option [ngValue]="item.value">{{ (item.label) | translate }}</option>
+        }
+      </select></label
+    ><label
+      >{{ 'containers.incoming_aqaba.size' | translate }}<select formControlName="containerSize">
+        @for (item of containerSizes; track item.value) {
+          <option [ngValue]="item.value">{{ (item.label) | translate }}</option>
+        }
+      </select></label
+    ><label
+      >{{ 'containers.incoming_aqaba.shipping_line' | translate }}<select formControlName="shippingLineId">
+        <option [ngValue]="0">{{ 'containers.incoming_aqaba.select_line' | translate }}</option>
+        @for (line of lines(); track line.shippingLineId) {
+          <option [ngValue]="line.shippingLineId">{{ line.name }}</option>
+        }
+      </select></label
+    ><label
+      >{{ 'containers.incoming_aqaba.delivery_location' | translate }}<select formControlName="deliveryLocationId">
+        <option [ngValue]="0">{{ 'containers.incoming_aqaba.select_location' | translate }}</option>
+        @for (loc of locations(); track loc.deliveryLocationId) {
+          <option [ngValue]="loc.deliveryLocationId">{{ loc.name }}</option>
+        }
+      </select></label
+    ><label
+      >{{ 'containers.incoming_aqaba.weight_tons' | translate }}<input
+        type="number"
+        min="0.01"
+        step="0.01"
+        formControlName="weightInTons" /></label
+    ><label>{{ 'containers.incoming_aqaba.vessel_arrival' | translate }}<input type="date" formControlName="vesselArrivalDate" /></label
+    ><label>{{ 'containers.incoming_aqaba.port_free_time_end' | translate }}<input type="date" formControlName="portFreeTimeEndDate" /></label
+    ><label
+      >{{ 'containers.incoming_aqaba.empty_return_free_time_end' | translate }}<input
+        type="date"
+        formControlName="emptyReturnFreeTimeEndDate" /></label
+    ><label
+      >{{ 'containers.incoming_aqaba.container_loading_date' | translate }}<input type="date" formControlName="containerLoadingDate" /></label
+    ><label
+      >{{ 'containers.incoming_aqaba.status' | translate }}<select formControlName="status">
+        @for (item of aqabaStatuses; track item.value) {
+          <option [ngValue]="item.value">{{ (item.label) | translate }}</option>
+        }
+      </select></label
+    ><label class="wide"
+      >{{ 'containers.incoming_aqaba.notes' | translate }}<textarea formControlName="notes" maxlength="1000"></textarea>
+    </label></div
+></ng-template>
+<ng-template #exportFields let-form="form"
+  ><div class="form-grid" [formGroup]="form">
+    <label>{{ 'containers.incoming_aqaba.container_number' | translate }}<input formControlName="containerNumber" maxlength="50" /></label
+    ><label
+      >{{ 'containers.incoming_aqaba.type' | translate }}<select formControlName="containerType">
+        @for (item of containerTypes; track item.value) {
+          <option [ngValue]="item.value">{{ (item.label) | translate }}</option>
+        }
+      </select></label
+    ><label
+      >{{ 'containers.incoming_aqaba.size' | translate }}<select formControlName="containerSize">
+        @for (item of containerSizes; track item.value) {
+          <option [ngValue]="item.value">{{ (item.label) | translate }}</option>
+        }
+      </select></label
+    ><label
+      >{{ 'containers.incoming_aqaba.loading_location' | translate }}<select formControlName="loadingLocationId">
+        <option [ngValue]="0">{{ 'containers.incoming_aqaba.select_location' | translate }}</option>
+        @for (loc of locations(); track loc.deliveryLocationId) {
+          <option [ngValue]="loc.deliveryLocationId">{{ loc.name }}</option>
+        }
+      </select></label
+    ><label
+      >{{ 'containers.incoming_aqaba.delivery_location' | translate }}<select formControlName="deliveryLocationId">
+        <option [ngValue]="0">{{ 'containers.incoming_aqaba.select_location' | translate }}</option>
+        @for (loc of locations(); track loc.deliveryLocationId) {
+          <option [ngValue]="loc.deliveryLocationId">{{ loc.name }}</option>
+        }
+      </select></label
+    ><label
+      >{{ 'containers.incoming_aqaba.route_status' | translate }}<select formControlName="routeStatus">
+        @for (item of routeStatuses; track item.value) {
+          <option [ngValue]="item.value">{{ (item.label) | translate }}</option>
+        }
+      </select></label
+    ><label>{{ 'containers.incoming_aqaba.withdrawal_date' | translate }}<input type="datetime-local" formControlName="withdrawalDate" /></label
+    ><label>{{ 'containers.incoming_aqaba.loading_date' | translate }}<input type="datetime-local" formControlName="loadingDate" /></label
+    ><label
+      >{{ 'containers.incoming_aqaba.weight_tons' | translate }}<input
+        type="number"
+        min="0.01"
+        step="0.01"
+        formControlName="weightInTons" /></label
+    ><label class="wide"
+      >{{ 'containers.incoming_aqaba.notes' | translate }}<textarea formControlName="notes" maxlength="1000"></textarea>
+    </label></div
+></ng-template>

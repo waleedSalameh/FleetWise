@@ -1,0 +1,435 @@
+<div class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>{{ 'maintenance.maintenance_records.maintenance_records' | translate }}</h1>
+    </div>
+
+    <button class="add-button" (click)="openAddDialog()">
+      <i class="pi pi-plus"></i>
+      {{ 'maintenance.maintenance_records.add_maintenance_record' | translate }}
+    </button>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div class="summary-icon blue">
+        <i class="pi pi-list"></i>
+      </div>
+      <div>
+        <span>{{ 'maintenance.maintenance_records.total_records' | translate }}</span>
+        <h3>{{ totalRecords }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon green">
+        <i class="pi pi-wrench"></i>
+      </div>
+      <div>
+        <span>{{ 'maintenance.maintenance_records.internal_records' | translate }}</span>
+        <h3>{{ internalRecords }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon orange">
+        <i class="pi pi-building"></i>
+      </div>
+      <div>
+        <span>{{ 'maintenance.maintenance_records.external_records' | translate }}</span>
+        <h3>{{ externalRecords }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon purple">
+        <i class="pi pi-wallet"></i>
+      </div>
+      <div>
+        <span>{{ 'maintenance.maintenance_records.total_maintenance_cost' | translate }}</span>
+        <h3>{{ totalMaintenanceCost | number:'1.2-2' }}</h3>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card">
+
+    <div class="table-toolbar">
+      <div>
+        <h3>{{ 'maintenance.maintenance_records.maintenance_history' | translate }}</h3>
+      </div>
+
+      <div class="search-box">
+        <i class="pi pi-search"></i>
+        <input type="text"
+          [placeholder]="'maintenance.maintenance_records.search_by_plate_id_type_or_workshop' | translate"
+          [(ngModel)]="searchText">
+      </div>
+    </div>
+
+    <div class="table-responsive">
+
+      <table class="vehicles-table">
+
+        <thead>
+          <tr>
+            <th>{{ 'maintenance.maintenance_records.id' | translate }}</th>
+            <th>{{ 'maintenance.maintenance_records.vehicle_plate' | translate }}</th>
+            <th>{{ 'maintenance.maintenance_records.date' | translate }}</th>
+            <th>{{ 'maintenance.maintenance_records.maintenance_type' | translate }}</th>
+            <th>{{ 'maintenance.maintenance_records.location' | translate }}</th>
+            <th>{{ 'maintenance.maintenance_records.odometer' | translate }}</th>
+            <th>{{ 'maintenance.maintenance_records.parts_cost' | translate }}</th>
+            <th>{{ 'maintenance.maintenance_records.labor_cost' | translate }}</th>
+            <th>{{ 'maintenance.maintenance_records.total_cost' | translate }}</th>
+            <th>{{ 'maintenance.maintenance_records.status' | translate }}</th>
+            <th>{{ 'maintenance.maintenance_records.workshop' | translate }}</th>
+            <th>{{ 'maintenance.maintenance_records.actions' | translate }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let record of filteredRecords">
+
+            <td>#{{ record.maintenanceRecordId }}</td>
+
+            <td>
+              <strong>{{ record.plateNumber || getVehiclePlate(record.vehicleId) }}</strong>
+            </td>
+
+            <td>{{ formatDate(record.maintenanceDate) }}</td>
+
+            <td>{{ record.maintenanceType }}</td>
+
+            <td>
+              <span class="source-badge" [ngClass]="getLocationClass(record.maintenanceLocation)">
+                {{ (getLocationLabel(record.maintenanceLocation)) | translate }}
+              </span>
+            </td>
+
+            <td>{{ record.odometer | number }}</td>
+
+            <td>{{ record.partsCost | number:'1.2-2' }}</td>
+
+            <td>{{ record.laborCost | number:'1.2-2' }}</td>
+
+            <td>
+              <strong>{{ record.totalCost | number:'1.2-2' }}</strong>
+            </td>
+
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(record.status)">
+                {{ (getStatusLabel(record.status)) | translate }}
+              </span>
+            </td>
+
+            <td>{{ record.workshopName || '-' }}</td>
+
+            <td>
+              <div class="action-buttons">
+
+                <button class="icon-button edit" [title]="'maintenance.maintenance_records.edit' | translate"
+                  (click)="openEditDialog(record)">
+                  <i class="pi pi-pencil"></i>
+                </button>
+
+                <button class="icon-button delete" [title]="'maintenance.maintenance_records.delete' | translate"
+                  (click)="confirmDelete(record)">
+                  <i class="pi pi-trash"></i>
+                </button>
+
+              </div>
+            </td>
+
+          </tr>
+
+          <tr *ngIf="filteredRecords.length === 0">
+            <td colspan="12">
+              <div class="empty-state">
+                <i class="pi pi-inbox"></i>
+                <h3>{{ 'maintenance.maintenance_records.no_maintenance_records_found' | translate }}</h3>
+                <p>{{ 'maintenance.maintenance_records.there_are_no_maintenance_records_matching_your_search' |
+                  translate }}</p>
+              </div>
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- Add / Edit Dialog -->
+<p-dialog [(visible)]="dialogVisible" [modal]="true" [draggable]="false" [resizable]="false"
+  [style]="{ width: '700px', maxWidth: '95vw' }"
+  [header]="(isEditMode ? 'Edit Maintenance Record' : 'Add Maintenance Record') | translate" (onHide)="closeDialog()">
+
+  <div class="vehicle-form">
+
+    <p class="dialog-description">
+      {{ (isEditMode
+      ? 'Update vehicle maintenance record information.'
+      : 'Enter the vehicle maintenance details below.') | translate }}
+    </p>
+
+    <!-- Maintenance Location -->
+    <div class="form-field full-width">
+      <label>{{ 'maintenance.maintenance_records.maintenance_location' | translate }} <span>*</span></label>
+
+      <select [(ngModel)]="form.maintenanceLocation" [disabled]="isEditMode">
+
+        <option [ngValue]="MaintenanceLocation.Internal">
+          {{ 'maintenance.maintenance_records.internal_company_maintenance' | translate }}
+        </option>
+
+        <option [ngValue]="MaintenanceLocation.External">
+          {{ 'maintenance.maintenance_records.external_workshop' | translate }}
+        </option>
+
+      </select>
+    </div>
+
+    <div class="form-grid">
+
+      <!-- Vehicle -->
+      <div class="form-field">
+        <label>{{ 'maintenance.maintenance_records.vehicle' | translate }} <span>*</span></label>
+
+        <select [(ngModel)]="form.vehicleId">
+          <option [ngValue]="0" disabled>{{ 'maintenance.maintenance_records.select_vehicle' | translate }}</option>
+
+          <option *ngFor="let vehicle of vehicles" [ngValue]="vehicle.vehicleId">
+            {{ vehicle.plateNumber }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Maintenance Date -->
+      <div class="form-field">
+        <label>{{ 'maintenance.maintenance_records.maintenance_date' | translate }} <span>*</span></label>
+
+        <input type="date" [(ngModel)]="form.maintenanceDate">
+      </div>
+
+      <!-- Maintenance Type -->
+      <div class="form-field">
+        <label>{{ 'maintenance.maintenance_records.maintenance_type' | translate }} <span>*</span></label>
+
+        <input type="text" maxlength="100" [(ngModel)]="form.maintenanceType"
+          [placeholder]="'maintenance.maintenance_records.e_g_engine_repair' | translate">
+      </div>
+
+      <!-- Odometer -->
+      <div class="form-field">
+        <label>{{ 'maintenance.maintenance_records.odometer' | translate }} <span>*</span></label>
+
+        <input type="number" min="0" step="1" [ngModel]="form.odometer" (ngModelChange)="onOdometerChange($event)"
+          [placeholder]="'maintenance.maintenance_records.enter_odometer' | translate">
+      </div>
+
+      <!-- Technician -->
+      <div class="form-field">
+        <label>{{ 'maintenance.maintenance_records.technician_name' | translate }}</label>
+
+        <input type="text" maxlength="100" [(ngModel)]="form.technicianName"
+          [placeholder]="'maintenance.maintenance_records.enter_technician_name' | translate">
+      </div>
+
+      <!-- Workshop -->
+      <div class="form-field" *ngIf="form.maintenanceLocation === MaintenanceLocation.External">
+        <label>{{ 'maintenance.maintenance_records.workshop_name' | translate }}</label>
+
+        <input type="text" maxlength="150" [(ngModel)]="form.workshopName"
+          [placeholder]="'maintenance.maintenance_records.enter_workshop_name' | translate">
+      </div>
+
+      <!-- Labor Cost -->
+      <div class="form-field">
+        <label>{{ 'maintenance.maintenance_records.labor_cost' | translate }}</label>
+
+        <input type="number" min="0" step="0.01" [(ngModel)]="form.laborCost"
+          [placeholder]="'maintenance.maintenance_records.enter_labor_cost' | translate">
+      </div>
+
+      <!-- Status -->
+      <div class="form-field" *ngIf="isEditMode">
+        <label>{{ 'maintenance.maintenance_records.status' | translate }}</label>
+
+        <select [(ngModel)]="form.status">
+
+          <option [ngValue]="MaintenanceStatus.Scheduled">
+            {{ 'maintenance.maintenance_records.scheduled' | translate }}
+          </option>
+
+          <option [ngValue]="MaintenanceStatus.InProgress">
+            {{ 'maintenance.maintenance_records.in_progress' | translate }}
+          </option>
+
+          <option [ngValue]="MaintenanceStatus.Completed">
+            {{ 'maintenance.maintenance_records.completed' | translate }}
+          </option>
+
+          <option [ngValue]="MaintenanceStatus.Cancelled">
+            {{ 'maintenance.maintenance_records.cancelled' | translate }}
+          </option>
+
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Description -->
+    <div class="form-field full-width">
+      <label>{{ 'maintenance.maintenance_records.description' | translate }}</label>
+
+      <textarea rows="3" maxlength="500" [(ngModel)]="form.description"
+        [placeholder]="'maintenance.maintenance_records.enter_maintenance_details' | translate">
+      </textarea>
+    </div>
+
+    <!-- Internal Inventory Notice -->
+    <div class="internal-section" *ngIf="form.maintenanceLocation === MaintenanceLocation.Internal">
+
+      <div class="section-heading">
+        <div>
+          <h3>
+            <i class="pi pi-info-circle"></i>
+            {{ 'maintenance.maintenance_records.internal_maintenance' | translate }}
+          </h3>
+          <p>{{ 'maintenance.maintenance_records.select_the_oil_and_spare_parts_used_for_this_maintenance' | translate
+            }}</p>
+        </div>
+      </div>
+
+      <p class="inventory-notice" *ngIf="inventoryLoading">{{
+        'maintenance.maintenance_records.loading_inventory_quantities' | translate }}</p>
+      <p class="inventory-notice" *ngIf="inventoryFailed">{{
+        'maintenance.maintenance_records.some_inventory_quantities_are_unavailable_try_again_before_savin' | translate
+        }}</p>
+      <h3>{{ 'maintenance.maintenance_records.oil_consumption' | translate }}</h3>
+      <div class="form-grid consumption-row" *ngFor="let item of oilConsumption; let i = index">
+        <div class="form-field">
+          <label [for]="'consume-oil-' + i">{{ 'maintenance.maintenance_records.oil' | translate }}</label>
+          <select [id]="'consume-oil-' + i" [(ngModel)]="item.oilId">
+            <option [ngValue]="0" disabled>{{ 'maintenance.maintenance_records.select_oil' | translate }}</option>
+            <option *ngFor="let oil of oils" [ngValue]="oil.oilId">{{ oil.oilName }} ({{ oil.unit }})</option>
+          </select>
+          <small>
+            {{ 'fragments.available' | translate }}
+            {{ oilStocks.get(item.oilId) ?? ('fragments.unavailable' | translate) }}
+          </small>
+        </div>
+        <div class="form-field">
+          <label [for]="'consume-oil-quantity-' + i">{{ 'maintenance.maintenance_records.quantity' | translate
+            }}</label>
+          <input [id]="'consume-oil-quantity-' + i" type="number" min="0.001" step="0.001" [(ngModel)]="item.quantity">
+        </div>
+        <button type="button" class="cancel-button" (click)="removeOil(i)" [disabled]="isSaving">{{
+          'maintenance.maintenance_records.remove_oil' | translate }}</button>
+      </div>
+      <button type="button" class="cancel-button" (click)="addOil()"
+        [disabled]="isSaving || inventoryLoading || inventoryFailed">{{ 'maintenance.maintenance_records.add_oil' |
+        translate }}</button>
+
+      <h3>{{ 'maintenance.maintenance_records.spare_part_consumption' | translate }}</h3>
+      <div class="form-grid consumption-row" *ngFor="let item of partConsumption; let i = index">
+        <div class="form-field">
+          <label [for]="'consume-part-' + i">{{ 'maintenance.maintenance_records.spare_part' | translate }}</label>
+          <select [id]="'consume-part-' + i" [(ngModel)]="item.sparePartId">
+            <option [ngValue]="0" disabled>{{ 'maintenance.maintenance_records.select_spare_part' | translate }}
+            </option>
+            <option *ngFor="let part of spareParts" [ngValue]="part.sparePartId">{{ part.partName }} ({{ part.unit }})
+            </option>
+          </select>
+          <small>
+            {{ 'fragments.available' | translate }}
+            {{ partStocks.get(item.sparePartId) ?? ('fragments.unavailable' | translate) }}
+          </small>
+        </div>
+        <div class="form-field">
+          <label [for]="'consume-part-quantity-' + i">{{ 'maintenance.maintenance_records.quantity' | translate
+            }}</label>
+          <input [id]="'consume-part-quantity-' + i" type="number" min="0.001" step="0.001" [(ngModel)]="item.quantity">
+        </div>
+        <button type="button" class="cancel-button" (click)="removePart(i)" [disabled]="isSaving">{{
+          'maintenance.maintenance_records.remove_part' | translate }}</button>
+      </div>
+      <button type="button" class="cancel-button" (click)="addPart()"
+        [disabled]="isSaving || inventoryLoading || inventoryFailed">{{ 'maintenance.maintenance_records.add_spare_part'
+        | translate }}</button>
+
+    </div>
+
+    <!-- External Workshop Notice -->
+    <div class="internal-section" *ngIf="form.maintenanceLocation === MaintenanceLocation.External">
+
+      <div class="section-heading">
+        <div>
+          <h3>
+            <i class="pi pi-building"></i>
+            {{ 'maintenance.maintenance_records.external_maintenance' | translate }}
+          </h3>
+          <p>
+            {{ 'maintenance.maintenance_records.maintenance_is_performed_by_an_external_workshop' | translate }}
+          </p>
+        </div>
+      </div>
+
+      <p class="inventory-notice">
+        {{ 'maintenance.maintenance_records.external_maintenance_does_not_consume_company_inventory' | translate }}
+      </p>
+
+    </div>
+
+    <!-- Cost Preview -->
+    <div class="cost-preview">
+
+      <span>{{ 'maintenance.maintenance_records.labor_cost' | translate }}</span>
+
+      <strong>
+        {{ (form.laborCost || 0) | number:'1.2-2' }}
+      </strong>
+
+      <span *ngIf="form.maintenanceLocation === MaintenanceLocation.Internal">{{
+        'maintenance.maintenance_records.estimated_materials' | translate }}</span>
+      <strong *ngIf="form.maintenanceLocation === MaintenanceLocation.Internal">{{ estimatedMaterialsCost |
+        number:'1.2-2' }}</strong>
+
+    </div>
+
+    <!-- Dialog Actions -->
+    <div class="dialog-actions">
+
+      <button type="button" class="cancel-button" (click)="closeDialog()" [disabled]="isSaving">
+        {{ 'maintenance.maintenance_records.cancel' | translate }}
+      </button>
+
+      <button type="button" class="save-button" (click)="saveRecord()" [disabled]="isSaving">
+
+        <i class="pi" [ngClass]="isSaving ? 'pi-spin pi-spinner' : 'pi-check'">
+        </i>
+
+        {{ (isSaving
+        ? 'Saving...'
+        : (isEditMode ? 'Update Record' : 'Save Record')) | translate }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+</p-dialog>

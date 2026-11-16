@@ -1,0 +1,311 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>{{ 'maintenance.movements.oil_movements.oil_stock_movements' | translate }}</h1>
+    </div>
+    <button type="button" class="add-button" (click)="openAddDialog()"
+      [disabled]="isLoading() || isSaving() || loadFailed() || oilsLoadFailed() || !oils().length">
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      {{ 'maintenance.movements.oil_movements.add_movement' | translate }}
+    </button>
+  </div>
+
+  <div class="summary-grid" [attr.aria-busy]="isLoading()">
+    <div class="summary-card">
+      <div class="summary-icon blue"><i class="pi pi-list" aria-hidden="true"></i></div>
+      <div>
+        <span>{{ 'maintenance.movements.oil_movements.total_movements' | translate }}</span>
+        <h3>{{ isLoading() || loadFailed() ? '—' : totalMovements() }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon green"><i class="pi pi-arrow-down" aria-hidden="true"></i></div>
+      <div>
+        <span>{{ 'maintenance.movements.oil_movements.total_received' | translate }}</span>
+        @if (isLoading() || loadFailed()) {
+        <h3>—</h3>
+        } @else {
+        @for (total of totalReceived(); track total.unit) {
+        <h3>{{ total.quantity | number:'1.0-3' }} <small>{{ total.unit }}</small></h3>
+        } @empty {
+        <h3>0</h3>
+        }
+        }
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon orange"><i class="pi pi-arrow-up" aria-hidden="true"></i></div>
+      <div>
+        <span>{{ 'maintenance.movements.oil_movements.total_issued' | translate }}</span>
+        @if (isLoading() || loadFailed()) {
+        <h3>—</h3>
+        } @else {
+        @for (total of totalIssued(); track total.unit) {
+        <h3>{{ total.quantity | number:'1.0-3' }} <small>{{ total.unit }}</small></h3>
+        } @empty {
+        <h3>0</h3>
+        }
+        }
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon purple"><i class="pi pi-replay" aria-hidden="true"></i></div>
+      <div>
+        <span>{{ 'maintenance.movements.oil_movements.total_returned' | translate }}</span>
+        @if (isLoading() || loadFailed()) {
+        <h3>—</h3>
+        } @else {
+        @for (total of totalReturned(); track total.unit) {
+        <h3>{{ total.quantity | number:'1.0-3' }} <small>{{ total.unit }}</small></h3>
+        } @empty {
+        <h3>0</h3>
+        }
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div>
+        <h3 id="oil-movements-heading">{{ 'maintenance.movements.oil_movements.movement_history' | translate }}</h3>
+      </div>
+      <div class="toolbar-filters">
+        <div class="form-field oil-filter">
+          <label for="movement-oil-filter">{{ 'maintenance.movements.oil_movements.oil' | translate }}</label>
+          <select #oilFilter id="movement-oil-filter" [value]="selectedOilId() ?? ''"
+            (change)="filterByOil(oilFilter.value)">
+            <option value="" [selected]="selectedOilId() === null">{{ 'maintenance.movements.oil_movements.all_oils' | translate }}</option>
+            @if (selectedOilId() !== null && !selectedOilAvailable()) {
+            <option [value]="selectedOilId()" [selected]="true">{{ 'fragments.selectedOil' | translate }}{{ selectedOilId() }}</option>
+            }
+            @for (oil of oils(); track oil.oilId) {
+            <option [value]="oil.oilId" [selected]="selectedOilId() === oil.oilId">{{ oil.oilName }}</option>
+            }
+          </select>
+        </div>
+        <div class="search-box">
+          <i class="pi pi-search" aria-hidden="true"></i>
+          <input #movementSearch type="search" [attr.aria-label]="'maintenance.movements.oil_movements.search_by_oil_name_reference_or_notes' | translate"
+            [placeholder]="'maintenance.movements.oil_movements.search_by_oil_reference_or_notes' | translate" [value]="searchText()"
+            (input)="searchText.set(movementSearch.value)">
+        </div>
+        <div class="form-field type-filter">
+          <label for="movement-type-filter">{{ 'maintenance.movements.oil_movements.movement_type' | translate }}</label>
+          <select #typeFilter id="movement-type-filter" [value]="selectedType()"
+            (change)="selectedType.set(typeFilter.value)">
+            <option value="">{{ 'maintenance.movements.oil_movements.all_types' | translate }}</option>
+            @for (type of movementTypes; track type.value) {
+            <option [value]="type.label">{{ (type.label) | translate }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
+
+    @if (oilsLoadFailed() && !isLoading() && !loadFailed()) {
+    <div class="inventory-notice" role="status">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      <p>{{ 'maintenance.movements.oil_movements.oils_could_not_be_loaded_units_are_unavailable_and_adding_moveme' | translate }}</p>
+    </div>
+    } @else if (!isLoading() && !loadFailed() && !oils().length) {
+    <div class="inventory-notice" role="status">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      <p>{{ 'maintenance.movements.oil_movements.no_oils_are_available_for_a_new_movement' | translate }}</p>
+    </div>
+    }
+
+    <div class="table-responsive" role="region" aria-labelledby="oil-movements-heading" tabindex="0">
+      <table class="vehicles-table" aria-labelledby="oil-movements-heading" [attr.aria-busy]="isLoading()">
+        <thead>
+          <tr>
+            <th scope="col">{{ 'maintenance.movements.oil_movements.movement_id' | translate }}</th>
+            <th scope="col">{{ 'maintenance.movements.oil_movements.oil' | translate }}</th>
+            <th scope="col">{{ 'maintenance.movements.oil_movements.movement_type' | translate }}</th>
+            <th scope="col">{{ 'maintenance.movements.oil_movements.quantity' | translate }}</th>
+            <th scope="col">{{ 'maintenance.movements.oil_movements.unit_cost' | translate }}</th>
+            <th scope="col">{{ 'maintenance.movements.oil_movements.total_cost' | translate }}</th>
+            <th scope="col">{{ 'maintenance.movements.oil_movements.date' | translate }}</th>
+            <th scope="col">{{ 'maintenance.movements.oil_movements.maintenance_reference' | translate }}</th>
+            <th scope="col">{{ 'maintenance.movements.oil_movements.reference_number' | translate }}</th>
+            <th scope="col">{{ 'maintenance.movements.oil_movements.notes' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+          <tr>
+            <td colspan="10">
+              <div class="empty-state" role="status">
+                <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                <h3>{{ 'maintenance.movements.oil_movements.loading_oil_stock_movements' | translate }}</h3>
+                <p>{{ 'maintenance.movements.oil_movements.please_wait_while_the_movement_records_are_loaded' | translate }}</p>
+              </div>
+            </td>
+          </tr>
+          } @else if (loadFailed()) {
+          <tr>
+            <td colspan="10">
+              <div class="empty-state" role="status">
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                <h3>{{ 'maintenance.movements.oil_movements.unable_to_load_movements' | translate }}</h3>
+                <p>{{ 'maintenance.movements.oil_movements.please_try_again_later' | translate }}</p>
+              </div>
+            </td>
+          </tr>
+          } @else {
+          @for (movement of filteredMovements(); track movement.oilStockMovementId) {
+          <tr>
+            <td>#{{ movement.oilStockMovementId }}</td>
+            <td>
+              <div class="oil-details">
+                <strong>{{ movement.oilName }}</strong>
+
+              </div>
+            </td>
+            <td>
+              <span class="status-badge" [class.completed]="movement.movementType === 'Receipt'"
+                [class.in-progress]="movement.movementType === 'Issue'"
+                [class.returned]="movement.movementType === 'Return'"
+                [class.scheduled]="movement.movementType === 'Adjustment'">
+                {{ movement.movementType | translate }}
+              </span>
+            </td>
+            <td>{{ movement.quantity | number:'1.0-3' }} {{ getUnit(movement.oilId) || '(unit unavailable)' }}</td>
+            <td>{{ movement.unitCost | number:'1.3-3' }}</td>
+            <td>{{ movement.totalCost | number:'1.3-3' }}</td>
+            <td>{{ movement.date | date:'dd/MM/yyyy' }}</td>
+            <td>
+              @if (movement.maintenanceRecordId !== null) {
+              <a routerLink="/maintenance/records"
+                [queryParams]="{ maintenanceRecordId: movement.maintenanceRecordId }">#{{ movement.maintenanceRecordId
+                }}</a>
+              } @else {
+              -
+              }
+            </td>
+            <td>{{ movement.referenceNumber || '-' }}</td>
+            <td class="notes-cell">{{ movement.notes || '-' }}</td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="10">
+              <div class="empty-state" role="status">
+                <i class="pi pi-inbox" aria-hidden="true"></i>
+                <h3>{{ 'maintenance.movements.oil_movements.no_movements_found' | translate }}</h3>
+                <p>{{ (movements().length ? 'There are no movements matching your search and filter.' : 'There are no oil
+                  movements recorded yet.') | translate }}</p>
+              </div>
+            </td>
+          </tr>
+          }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<p-dialog [visible]="dialogVisible()" (visibleChange)="closeDialog()" [modal]="true" [draggable]="false"
+  [resizable]="false" [closable]="!isSaving()" [closeOnEscape]="!isSaving()" [dismissableMask]="false"
+  [style]="{ width: '650px', maxWidth: '95vw' }" [header]="'maintenance.movements.oil_movements.add_movement' | translate" (onHide)="closeDialog()">
+  <form class="vehicle-form" [formGroup]="form" (ngSubmit)="saveMovement()" novalidate [attr.aria-busy]="isSaving()">
+    <p class="dialog-description">{{ 'maintenance.movements.oil_movements.enter_the_manual_oil_movement_details_below' | translate }}</p>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="movement-oil">{{ 'maintenance.movements.oil_movements.oil' | translate }} <span aria-hidden="true">*</span></label>
+        <select id="movement-oil" formControlName="oilId" required
+          [attr.aria-invalid]="form.controls.oilId.touched && form.controls.oilId.invalid">
+          <option [ngValue]="0" disabled>{{ 'maintenance.movements.oil_movements.select_oil' | translate }}</option>
+          @for (oil of oils(); track oil.oilId) {
+          <option [ngValue]="oil.oilId">{{ oil.oilName }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="movement-type">{{ 'maintenance.movements.oil_movements.movement_type' | translate }} <span aria-hidden="true">*</span></label>
+        <select id="movement-type" formControlName="movementType" required
+          [attr.aria-invalid]="form.controls.movementType.touched && form.controls.movementType.invalid">
+          @for (type of movementTypes; track type.value) {
+          <option [ngValue]="type.value">{{ (type.label) | translate }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="movement-quantity">{{ 'maintenance.movements.oil_movements.quantity' | translate }} <span aria-hidden="true">*</span></label>
+        <input id="movement-quantity" type="number" formControlName="quantity" min="0.001" step="0.001" required
+          [placeholder]="'maintenance.movements.oil_movements.enter_quantity' | translate"
+          [attr.aria-invalid]="form.controls.quantity.touched && form.controls.quantity.invalid">
+      </div>
+
+      <div class="form-field">
+        <label for="movement-unit-cost">{{ 'maintenance.movements.oil_movements.unit_cost' | translate }} <span aria-hidden="true">*</span></label>
+        <input id="movement-unit-cost" type="number" formControlName="unitCost" min="0" step="0.001" required
+          [placeholder]="'maintenance.movements.oil_movements.enter_unit_cost' | translate"
+          [attr.aria-invalid]="form.controls.unitCost.touched && form.controls.unitCost.invalid">
+      </div>
+
+      <div class="form-field">
+        <label for="movement-date">{{ 'maintenance.movements.oil_movements.date' | translate }} <span aria-hidden="true">*</span></label>
+        <input id="movement-date" type="date" formControlName="date" required
+          [attr.aria-invalid]="form.controls.date.touched && form.controls.date.invalid">
+      </div>
+
+      <div class="form-field">
+        <label for="movement-reference">{{ 'maintenance.movements.oil_movements.reference_number' | translate }}</label>
+        <input id="movement-reference" type="text" formControlName="referenceNumber" maxlength="100"
+          [placeholder]="'maintenance.movements.oil_movements.enter_reference_number' | translate"
+          [attr.aria-invalid]="form.controls.referenceNumber.touched && form.controls.referenceNumber.invalid">
+      </div>
+    </div>
+
+    <div class="form-field full-width">
+      <label for="movement-notes">{{ 'maintenance.movements.oil_movements.notes' | translate }}</label>
+      <textarea id="movement-notes" formControlName="notes" rows="3" maxlength="500"
+        [placeholder]="'maintenance.movements.oil_movements.enter_movement_notes' | translate"
+        [attr.aria-invalid]="form.controls.notes.touched && form.controls.notes.invalid"></textarea>
+    </div>
+
+    @if (form.controls.oilId.value > 0) {
+    <div class="inventory-notice" role="status">
+      <i class="pi" [class.pi-spin]="isLoadingStock()" [class.pi-spinner]="isLoadingStock()"
+        [class.pi-info-circle]="!isLoadingStock()" aria-hidden="true"></i>
+      <p>
+        @if (isLoadingStock()) {
+        Loading current stock...
+        } @else if (stockUnavailable() || currentStock() === null) {
+        Current stock is unavailable. Stock must be verified before an Issue can be saved.
+        } @else {
+        {{ 'fragments.currentStock' | translate }} <strong>{{ currentStock() | number:'1.0-3' }} {{ getUnit(form.controls.oilId.value) }}</strong>
+        }
+      </p>
+    </div>
+    }
+
+    @if (form.controls.movementType.value === InventoryMovementType.Adjustment) {
+    <div class="inventory-notice">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      <p>{{ 'maintenance.movements.oil_movements.adjustment_adds_the_entered_quantity_to_stock_it_does_not_set_th' | translate }}</p>
+    </div>
+    }
+
+    <div class="inventory-notice">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      <p>{{ 'maintenance.movements.oil_movements.manual_movements_are_not_linked_to_maintenance_records_maintenan' | translate }}</p>
+    </div>
+
+    <div class="dialog-actions">
+      <button type="button" class="cancel-button" (click)="closeDialog()" [disabled]="isSaving()">{{ 'maintenance.movements.oil_movements.cancel' | translate }}</button>
+      <button type="submit" class="save-button" [disabled]="isSaving()">
+        <i class="pi" [class.pi-spin]="isSaving()" [class.pi-spinner]="isSaving()" [class.pi-check]="!isSaving()"
+          aria-hidden="true"></i>
+        {{ (isSaving() ? 'Saving...' : 'Save Movement') | translate }}
+      </button>
+    </div>
+  </form>
+</p-dialog>

@@ -1,0 +1,14 @@
+<header class="topbar">
+  <label class="language-switcher"
+    ><i class="pi pi-globe" aria-hidden="true"></i
+    ><span>{{ (language.language() === 'ar' ? 'اللغة' : 'Language') | translate }}</span
+    ><select
+      [attr.aria-label]="'layout.components.topbar.language' | translate"
+      [value]="language.language()"
+      (change)="change($any($event.target).value)"
+    >
+      <option value="en">{{ 'layout.components.topbar.english' | translate }}</option>
+      <option value="ar">العربية</option>
+    </select></label
+  >
+</header>

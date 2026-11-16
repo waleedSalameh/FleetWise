@@ -1,0 +1,63 @@
+<div class="page">
+  <div class="page-header">
+    <h1>{{ 'customers.delivery_locations.delivery_locations' | translate }}</h1>
+    <button type="button" class="add-button" (click)="openAddDialog()" [disabled]="isSaving() || deletingId() !== null">
+      <i class="pi pi-plus" aria-hidden="true"></i> {{ 'customers.delivery_locations.add_delivery_location' | translate }}
+    </button>
+  </div>
+  <div class="summary-cards" [attr.aria-busy]="isLoading()">
+    <div class="summary-card"><div class="summary-icon blue"><i class="pi pi-map-marker" aria-hidden="true"></i></div>
+      <div><span>{{ 'customers.delivery_locations.total_delivery_locations' | translate }}</span><h2>{{ isLoading() || loadFailed() ? '—' : totalRecords() }}</h2></div>
+    </div>
+
+  </div>
+  <div class="table-container">
+    <div class="table-header"><h2>{{ 'customers.delivery_locations.delivery_locations_list_2' | translate }}</h2>
+      <div class="search-box"><i class="pi pi-search" aria-hidden="true"></i>
+        <input #search type="search" [attr.aria-label]="'customers.delivery_locations.search_delivery_locations' | translate" [placeholder]="'customers.delivery_locations.search_delivery_locations_2' | translate"
+          [value]="searchText()" (input)="searchText.set(search.value)">
+        @if (searchText()) { <button type="button" (click)="searchText.set('')" [attr.aria-label]="'customers.delivery_locations.clear_search' | translate"><i class="pi pi-times" aria-hidden="true"></i></button> }
+      </div>
+    </div>
+    @if (isLoading()) { <div class="loading-state" role="status">{{ 'customers.delivery_locations.loading_delivery_locations' | translate }}</div> }
+    @else if (loadFailed()) { <div class="error-state" role="status">{{ 'customers.delivery_locations.failed_to_load_delivery_locations' | translate }}</div> }
+    @else if (!filteredRecords().length) {
+      <div class="empty-state" role="status"><i class="pi pi-map-marker" aria-hidden="true"></i>
+        <h3>{{ 'customers.delivery_locations.no_delivery_locations_found' | translate }}</h3><p>{{ (records().length ? 'Try another search.' : 'Add the first delivery location to get started.') | translate }}</p>
+      </div>
+    } @else {
+      <div class="table-wrapper" role="region" [attr.aria-label]="'customers.delivery_locations.delivery_locations_list' | translate" tabindex="0">
+        <table><thead><tr><th scope="col">{{ 'customers.delivery_locations.id' | translate }}</th>
+            <th scope="col">{{ 'customers.delivery_locations.location_name' | translate }}</th>
+            <th scope="col">{{ 'customers.delivery_locations.actions' | translate }}</th></tr></thead>
+          <tbody>@for (record of filteredRecords(); track record.deliveryLocationId) {
+            <tr><td>#{{ record.deliveryLocationId }}</td>
+                <td><strong>{{ record.name || '-' }}</strong></td>
+              <td><div class="action-buttons">
+                <button type="button" class="edit-button" (click)="openEditDialog(record)" [disabled]="isSaving() || deletingId() !== null" [attr.aria-label]="'dynamic.edit' | translate: { name: record.name }"><i class="pi pi-pencil" aria-hidden="true"></i></button>
+                <button type="button" class="delete-button" (click)="confirmDelete(record)" [disabled]="isSaving() || deletingId() !== null" [attr.aria-label]="'dynamic.delete' | translate: { name: record.name }"><i class="pi pi-trash" aria-hidden="true"></i></button>
+              </div></td></tr>
+          }</tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+<p-dialog [visible]="dialogVisible()" (visibleChange)="closeDialog()" [modal]="true" [draggable]="false" [resizable]="false"
+  [closable]="!isSaving()" [closeOnEscape]="!isSaving()" [dismissableMask]="false"
+  [style]="{ width: '550px', maxWidth: '95vw' }" [header]="(editingId() === null ? 'Add Delivery Location' : 'Edit Delivery Location') | translate" (onHide)="closeDialog()">
+  <form class="vehicle-form" [formGroup]="form" (ngSubmit)="saveRecord()" novalidate [attr.aria-busy]="isSaving()">
+    <p class="dialog-description">{{ 'customers.delivery_locations.enter_the_delivery_location_information' | translate }}</p>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="delivery-locations-name">{{ 'customers.delivery_locations.location_name' | translate }} <span aria-hidden="true">*</span></label>
+        <input id="delivery-locations-name" type="text" formControlName="name" maxlength="150" required
+          [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid">
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="cancel-button" (click)="closeDialog()" [disabled]="isSaving()">{{ 'customers.delivery_locations.cancel' | translate }}</button>
+      <button type="submit" class="save-button" [disabled]="isSaving()"><i class="pi" [class.pi-check]="!isSaving()" [class.pi-spin]="isSaving()" [class.pi-spinner]="isSaving()" aria-hidden="true"></i>{{ (isSaving() ? 'Saving...' : editingId() === null ? 'Save Delivery Location' : 'Update Delivery Location') | translate }}</button>
+    </div>
+  </form>
+</p-dialog>

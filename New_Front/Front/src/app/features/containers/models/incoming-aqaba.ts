@@ -1,0 +1,4 @@
+export interface IncomingAqabaContainerSave { containerNumber: string; containerType: number; containerSize: number; shippingLineId: number; deliveryLocationId: number; weightInTons: number; vesselArrivalDate: string; portFreeTimeEndDate: string; emptyReturnFreeTimeEndDate: string; containerLoadingDate: string | null; notes: string | null; status: number; }
+export interface IncomingAqabaContainer extends IncomingAqabaContainerSave { id: number; shippingLineName: string; deliveryLocationName: string; }
+export interface IncomingAqabaBillSave { billNumber: string; customerId: number; status: number; containers: IncomingAqabaContainerSave[]; }
+export interface IncomingAqabaBill { id: number; billNumber: string; customerId: number; customerName: string; customerPhoneNumber: string | null; containerCount: number; status: number; createdAt: string; containers: IncomingAqabaContainer[]; }

@@ -1,0 +1,274 @@
+<div class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>{{ 'vehicles.company_vehicles.company_vehicles' | translate }}</h1>
+    </div>
+
+    <button class="add-button" (click)="openAddDialog()">
+      <i class="pi pi-plus"></i>
+      {{ 'vehicles.company_vehicles.add_vehicle' | translate }}
+    </button>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div>
+        <span>{{ 'vehicles.company_vehicles.total_vehicles' | translate }}</span>
+        <h2>{{ vehicles.length }}</h2>
+      </div>
+      <div class="summary-icon blue">
+        <i class="pi pi-truck"></i>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div>
+        <span>{{ 'vehicles.company_vehicles.available' | translate }}</span>
+        <h2>{{ getCount(0) }}</h2>
+      </div>
+      <div class="summary-icon green">
+        <i class="pi pi-check-circle"></i>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div>
+        <span>{{ 'vehicles.company_vehicles.in_use' | translate }}</span>
+        <h2>{{ getCount(1) }}</h2>
+      </div>
+      <div class="summary-icon purple">
+        <i class="pi pi-send"></i>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div>
+        <span>{{ 'vehicles.company_vehicles.maintenance' | translate }}</span>
+        <h2>{{ getCount(2) }}</h2>
+      </div>
+      <div class="summary-icon orange">
+        <i class="pi pi-wrench"></i>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Vehicles Table -->
+  <div class="table-card">
+
+    <div class="table-toolbar">
+      <div>
+        <h3>{{ 'vehicles.company_vehicles.all_company_vehicles' | translate }}</h3>
+      </div>
+
+      <div class="table-actions">
+        <div class="search-box">
+          <i class="pi pi-search"></i>
+
+          <input type="text" [placeholder]="'vehicles.company_vehicles.search_vehicles' | translate" [(ngModel)]="searchText">
+
+          <i *ngIf="searchText" class="pi pi-times" (click)="searchText = ''" style="cursor: pointer;"></i>
+        </div>
+
+
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="empty-state" *ngIf="isLoading">
+      <i class="pi pi-spin pi-spinner"></i>
+      <h3>{{ 'vehicles.company_vehicles.loading_vehicles' | translate }}</h3>
+    </div>
+
+    <!-- Error -->
+    <div class="empty-state" *ngIf="!isLoading && errorMessage && !displayVehicleDialog">
+      <i class="pi pi-exclamation-circle"></i>
+      <h3>{{ errorMessage | translate }}</h3>
+      <button class="filter-button" (click)="loadVehicles()">
+        {{ 'vehicles.company_vehicles.try_again' | translate }}
+      </button>
+    </div>
+
+    <!-- Empty -->
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage && vehicles.length === 0">
+      <i class="pi pi-truck"></i>
+      <h3>{{ 'vehicles.company_vehicles.no_vehicles_found' | translate }}</h3>
+      <p>{{ 'vehicles.company_vehicles.start_by_adding_your_first_company_vehicle' | translate }}</p>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-responsive" *ngIf="!isLoading && !errorMessage && filteredVehicles.length > 0">
+
+      <table class="vehicles-table">
+
+        <thead>
+          <tr>
+            <th>{{ 'vehicles.company_vehicles.plate_number' | translate }}</th>
+            <th>{{ 'vehicles.company_vehicles.make' | translate }}</th>
+            <th>{{ 'vehicles.company_vehicles.model' | translate }}</th>
+            <th>{{ 'vehicles.company_vehicles.year' | translate }}</th>
+            <th>{{ 'vehicles.company_vehicles.odometer' | translate }}</th>
+            <th>{{ 'vehicles.company_vehicles.tank_capacity' | translate }}</th>
+            <th>{{ 'vehicles.company_vehicles.status' | translate }}</th>
+            <th>{{ 'vehicles.company_vehicles.actions' | translate }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let vehicle of filteredVehicles">
+
+            <td>#{{ vehicle.plateNumber }}</td>
+            <td>{{ vehicle.make }}</td>
+            <td>{{ vehicle.model }}</td>
+            <td>{{ vehicle.year }}</td>
+            <td>{{ vehicle.currentOdometer | number }} km</td>
+            <td>{{ vehicle.fuelTankCapacity }} L</td>
+
+            <td>
+              <span class="status-badge" [ngClass]="{
+                  'available': vehicle.status === 0,
+                  'in-use': vehicle.status === 1,
+                  'maintenance': vehicle.status === 2,
+                  'inactive': vehicle.status === 3
+                }">
+                {{ (vehicle.status === 0 ? 'Available' :
+                vehicle.status === 1 ? 'In Use' :
+                vehicle.status === 2 ? 'Under Maintenance' :
+                'Inactive') | translate }}
+              </span>
+            </td>
+
+            <td>
+              <div class="action-buttons">
+
+                <button class="icon-button edit" [title]="'vehicles.company_vehicles.edit' | translate" (click)="openEditDialog(vehicle)">
+                  <i class="pi pi-pencil"></i>
+                </button>
+
+                <button type="button" class="icon-button delete" [title]="'vehicles.company_vehicles.delete' | translate"
+                  (click)="confirmDelete(vehicle.vehicleId)">
+                  <i class="pi pi-trash"></i>
+                </button>
+
+              </div>
+            </td>
+
+          </tr>
+        </tbody>
+
+      </table>
+
+    </div>
+
+    <!-- No Search Results -->
+    <div class="empty-state" *ngIf="
+        !isLoading &&
+        !errorMessage &&
+        vehicles.length > 0 &&
+        filteredVehicles.length === 0
+      ">
+      <i class="pi pi-search"></i>
+      <h3>{{ 'vehicles.company_vehicles.no_results_found' | translate }}</h3>
+      <p>{{ 'vehicles.company_vehicles.try_searching_with_a_different_keyword' | translate }}</p>
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- Add / Edit Vehicle Dialog -->
+<p-dialog [(visible)]="displayVehicleDialog" [modal]="true" [draggable]="false" [resizable]="false"
+  [closable]="!isSaving" [dismissableMask]="!isSaving" [style]="{ width: '600px', maxWidth: '95vw' }"
+  [header]="(isEditMode ? 'Edit Vehicle' : 'Add New Vehicle') | translate" (onHide)="closeDialog()">
+
+  <div class="vehicle-form">
+
+    <p class="dialog-description">
+      {{ (isEditMode
+      ? 'Update the vehicle information below.'
+      : 'Enter the information of the new company vehicle.') | translate }}
+    </p>
+
+    <!-- Error Message -->
+    <div class="form-error" *ngIf="errorMessage">
+      <i class="pi pi-exclamation-circle"></i>
+      {{ errorMessage | translate }}
+    </div>
+
+    <div class="form-grid">
+
+      <!-- Plate Number -->
+      <div class="form-field">
+        <label for="plateNumber">{{ 'vehicles.company_vehicles.plate_number' | translate }}</label>
+        <input id="plateNumber" type="number" [(ngModel)]="newVehicle.plateNumber" [placeholder]="'vehicles.company_vehicles.enter_plate_number' | translate">
+      </div>
+
+      <!-- Make -->
+      <div class="form-field">
+        <label for="make">{{ 'vehicles.company_vehicles.make' | translate }}</label>
+        <input id="make" type="text" [(ngModel)]="newVehicle.make" [placeholder]="'vehicles.company_vehicles.e_g_mercedes' | translate">
+      </div>
+
+      <!-- Model -->
+      <div class="form-field">
+        <label for="model">{{ 'vehicles.company_vehicles.model' | translate }}</label>
+        <input id="model" type="text" [(ngModel)]="newVehicle.model" [placeholder]="'vehicles.company_vehicles.e_g_actros' | translate">
+      </div>
+
+      <!-- Year -->
+      <div class="form-field">
+        <label for="year">{{ 'vehicles.company_vehicles.year' | translate }}</label>
+        <input id="year" type="number" [(ngModel)]="newVehicle.year" [placeholder]="'vehicles.company_vehicles.e_g_2024' | translate">
+      </div>
+
+      <!-- Current Odometer -->
+      <div class="form-field">
+        <label for="odometer">{{ 'vehicles.company_vehicles.current_odometer_km' | translate }}</label>
+        <input id="odometer" type="number" [(ngModel)]="newVehicle.currentOdometer" [placeholder]="'vehicles.company_vehicles.enter_odometer' | translate">
+      </div>
+
+      <!-- Fuel Tank Capacity -->
+      <div class="form-field">
+        <label for="tankCapacity">{{ 'vehicles.company_vehicles.fuel_tank_capacity_l' | translate }}</label>
+        <input id="tankCapacity" type="number" step="0.01" [(ngModel)]="newVehicle.fuelTankCapacity"
+          [placeholder]="'vehicles.company_vehicles.enter_tank_capacity' | translate">
+      </div>
+
+      <!-- Status -->
+      <div class="form-field full-width">
+        <label for="status">{{ 'vehicles.company_vehicles.status' | translate }}</label>
+        <select id="status" [(ngModel)]="newVehicle.status">
+          <option [ngValue]="0">{{ 'vehicles.company_vehicles.available' | translate }}</option>
+          <option [ngValue]="1">{{ 'vehicles.company_vehicles.in_use' | translate }}</option>
+          <option [ngValue]="2">{{ 'vehicles.company_vehicles.under_maintenance' | translate }}</option>
+          <option [ngValue]="3">{{ 'vehicles.company_vehicles.inactive' | translate }}</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Dialog Actions -->
+    <div class="dialog-actions">
+
+      <button type="button" class="cancel-button" [disabled]="isSaving" (click)="closeDialog()">
+        {{ 'vehicles.company_vehicles.cancel' | translate }}
+      </button>
+
+      <button type="button" class="save-button" [disabled]="isSaving" (click)="saveVehicle()">
+        <i class="pi" [ngClass]="isSaving ? 'pi-spin pi-spinner' : (isEditMode ? 'pi-check' : 'pi-plus')"></i>
+
+        {{ (isSaving
+        ? 'Saving...'
+        : (isEditMode ? 'Update Vehicle' : 'Add Vehicle')) | translate }}
+      </button>
+
+    </div>
+
+  </div>
+
+</p-dialog>

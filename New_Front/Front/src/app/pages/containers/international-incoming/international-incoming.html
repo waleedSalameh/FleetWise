@@ -1,0 +1,244 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>{{ 'containers.international_incoming.international_import' | translate }}</h1>
+      <p>{{ 'containers.international_incoming.manage_incoming_international_cargo' | translate }}</p>
+    </div>
+    <button type="button" class="add-button" (click)="openAdd()" [disabled]="saving()">
+      <i class="pi pi-plus" aria-hidden="true"></i> {{ 'containers.international_incoming.add_import' | translate }}
+    </button>
+  </div>
+  <div class="summary-cards">
+    <div class="summary-card">
+      <div class="summary-icon blue"><i class="pi pi-list"></i></div>
+      <div>
+        <span>{{ 'containers.international_incoming.total_imports' | translate }}</span>
+        <h2>{{ loading() || failed() ? '—' : records().length }}</h2>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon green"><i class="pi pi-check-circle"></i></div>
+      <div>
+        <span>{{ 'containers.international_incoming.completed' | translate }}</span>
+        <h2>{{ loading() || failed() ? '—' : completedCount() }}</h2>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon orange"><i class="pi pi-wallet"></i></div>
+      <div>
+        <span>{{ 'containers.international_incoming.paid' | translate }}</span>
+        <h2>{{ loading() || failed() ? '—' : paidCount() }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="table-container">
+    <div class="table-header">
+      <h2>{{ 'containers.international_incoming.international_imports' | translate }}</h2>
+      <div class="toolbar">
+        <label class="search-box"
+          ><i class="pi pi-search" aria-hidden="true"></i
+          ><input
+            #searchInput
+            type="search"
+            [attr.aria-label]="'containers.international_incoming.search_international_imports' | translate"
+            [placeholder]="'containers.international_incoming.search_cargo_customer_country' | translate"
+            [value]="search()"
+            (input)="search.set(searchInput.value)" /></label
+        ><select
+          [attr.aria-label]="'containers.international_incoming.filter_by_status' | translate"
+          [value]="statusFilter()"
+          (change)="statusFilter.set(+$any($event.target).value)"
+        >
+          <option value="0">{{ 'containers.international_incoming.all_statuses' | translate }}</option>
+          @for (item of statuses; track item.value) {
+            <option [value]="item.value">{{ (item.label) | translate }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (loading()) {
+      <div class="state" role="status">{{ 'containers.international_incoming.loading_imports' | translate }}</div>
+    } @else if (failed()) {
+      <div class="state" role="alert">
+        {{ 'containers.international_incoming.could_not_load_imports' | translate }} <button type="button" (click)="load()">{{ 'containers.international_incoming.retry' | translate }}</button>
+      </div>
+    } @else if (!filtered().length) {
+      <div class="state">{{ 'containers.international_incoming.no_international_imports_found' | translate }}</div>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'containers.international_incoming.cargo' | translate }}</th>
+              <th>{{ 'containers.international_incoming.customer' | translate }}</th>
+              <th>{{ 'containers.international_incoming.country' | translate }}</th>
+              <th>{{ 'containers.international_incoming.cargo_type' | translate }}</th>
+              <th>{{ 'containers.international_incoming.weight' | translate }}</th>
+              <th>{{ 'containers.international_incoming.status' | translate }}</th>
+              <th>{{ 'containers.international_incoming.paid' | translate }}</th>
+              <th>{{ 'containers.international_incoming.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (x of filtered(); track x.id) {
+              <tr>
+                <td>{{ x.cargoNumber }}</td>
+                <td>{{ x.customerName }}</td>
+                <td>{{ x.country }}</td>
+                <td>{{ (label(types, x.cargoType)) | translate }}</td>
+                <td>{{ x.weight }}</td>
+                <td>
+                  <span class="badge">{{ (label(statuses, x.status)) | translate }}</span>
+                </td>
+                <td>{{ (x.isPaid ? 'Yes' : 'No') | translate }}</td>
+                <td class="actions">
+                  <button
+                    type="button"
+                    [title]="'containers.international_incoming.details' | translate"
+                    [attr.aria-label]="'dynamic.view' | translate: { name: x.cargoNumber }"
+                    (click)="showDetails(x)"
+                  >
+                    <i class="pi pi-eye"></i></button
+                  ><button
+                    type="button"
+                    [title]="'containers.international_incoming.edit' | translate"
+                    [attr.aria-label]="'dynamic.edit' | translate: { name: x.cargoNumber }"
+                    (click)="openEdit(x)"
+                  >
+                    <i class="pi pi-pencil"></i></button
+                  ><button
+                    type="button"
+                    [title]="'containers.international_incoming.delete' | translate"
+                    [attr.aria-label]="'dynamic.delete' | translate: { name: x.cargoNumber }"
+                    (click)="delete(x)"
+                    [disabled]="deleting()"
+                  >
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+<p-dialog
+  [header]="(editingId() === null ? 'Add International Import' : 'Edit International Import') | translate"
+  [modal]="true"
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [style]="{ width: '760px', maxWidth: '95vw' }"
+  ><form [formGroup]="form" (ngSubmit)="save()">
+    <div class="form-grid">
+      <label>{{ 'containers.international_incoming.cargo_number' | translate }} <input formControlName="cargoNumber" maxlength="100" /></label
+      ><label
+        >{{ 'containers.international_incoming.customer' | translate }}
+        <select formControlName="customerId">
+          <option [ngValue]="0">{{ 'containers.international_incoming.select_customer' | translate }}</option>
+          @for (c of customers(); track c.id) {
+            <option [ngValue]="c.id">{{ c.customerName }}</option>
+          }
+        </select></label
+      ><label>{{ 'containers.international_incoming.country' | translate }} <input formControlName="country" maxlength="100" /></label
+      ><label
+        >{{ 'containers.international_incoming.cargo_type' | translate }}
+        <select formControlName="cargoType">
+          @for (item of types; track item.value) {
+            <option [ngValue]="item.value">{{ (item.label) | translate }}</option>
+          }
+        </select></label
+      ><label>{{ 'containers.international_incoming.loading_location' | translate }} <input formControlName="loadingLocation" maxlength="200" /></label
+      ><label>{{ 'containers.international_incoming.factory_name' | translate }} <input formControlName="factoryName" maxlength="200" /></label
+      ><label>{{ 'containers.international_incoming.weight' | translate }} <input type="number" min="0.01" step="0.01" formControlName="weight" /></label
+      ><label
+        >{{ 'containers.international_incoming.customs_declaration' | translate }}
+        <input formControlName="customsDeclarationNumber" maxlength="100" /></label
+      ><label
+        >{{ 'containers.international_incoming.trip_duration' | translate }}
+        <input type="number" min="1" step="1" formControlName="tripDuration" /></label
+      ><label
+        >{{ 'containers.international_incoming.unloading_location' | translate }} <input formControlName="unloadingLocation" maxlength="200" /></label
+      ><label
+        >{{ 'containers.international_incoming.distance' | translate }} <input type="number" min="0.01" step="0.01" formControlName="distance" /></label
+      ><label
+        >{{ 'containers.international_incoming.status' | translate }}
+        <select formControlName="status">
+          @for (item of statuses; track item.value) {
+            <option [ngValue]="item.value">{{ (item.label) | translate }}</option>
+          }
+        </select></label
+      ><label class="check"><input type="checkbox" formControlName="isPaid" /> {{ 'containers.international_incoming.paid' | translate }}</label
+      ><label class="wide"
+        >{{ 'containers.international_incoming.notes' | translate }} <textarea formControlName="notes" maxlength="1000"></textarea>
+      </label>
+    </div>
+    <div class="dialog-actions">
+      <button
+        type="button"
+        class="cancel-button"
+        (click)="visible.set(false)"
+        [disabled]="saving()"
+      >
+        {{ 'containers.international_incoming.cancel' | translate }}</button
+      ><button type="submit" class="add-button" [disabled]="saving()">
+        {{ (saving() ? 'Saving...' : 'Save') | translate }}
+      </button>
+    </div>
+  </form></p-dialog
+>
+<p-dialog
+  [header]="'containers.international_incoming.import_details' | translate"
+  [modal]="true"
+  [visible]="details() !== null"
+  (visibleChange)="!$event && details.set(null)"
+  [style]="{ width: '650px', maxWidth: '95vw' }"
+>
+  @if (details(); as x) {
+    <div class="details-grid">
+      <div>
+        <strong>{{ 'containers.international_incoming.cargo_number' | translate }}</strong><span>{{ x.cargoNumber }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.customer' | translate }}</strong><span>{{ x.customerName }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.country' | translate }}</strong><span>{{ x.country }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.cargo_type' | translate }}</strong><span>{{ (label(types, x.cargoType)) | translate }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.loading_location' | translate }}</strong><span>{{ x.loadingLocation }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.factory' | translate }}</strong><span>{{ x.factoryName }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.unloading_location' | translate }}</strong><span>{{ x.unloadingLocation }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.weight' | translate }}</strong><span>{{ x.weight }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.distance' | translate }}</strong><span>{{ x.distance }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.trip_duration' | translate }}</strong><span>{{ x.tripDuration }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.customs_declaration_2' | translate }}</strong><span>{{ x.customsDeclarationNumber }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.status' | translate }}</strong><span>{{ (label(statuses, x.status)) | translate }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.paid' | translate }}</strong><span>{{ (x.isPaid ? 'Yes' : 'No') | translate }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.international_incoming.notes' | translate }}</strong><span>{{ x.notes || '—' }}</span>
+      </div>
+    </div>
+  }
+</p-dialog>

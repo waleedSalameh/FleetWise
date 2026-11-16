@@ -1,0 +1,384 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>{{ 'trips.trips_management' | translate }}</h1>
+
+    </div>
+    <button type="button" class="add-button" (click)="openAdd()" [disabled]="loading() || failed() || saving()">
+      <i class="pi pi-plus" aria-hidden="true"></i> {{ 'trips.add_trip' | translate }}
+    </button>
+  </div>
+  <div class="summary-grid" [attr.aria-busy]="loading()">
+    <div class="summary-card">
+      <div class="summary-icon blue"><i class="pi pi-map"></i></div>
+      <div>
+        <span>{{ 'trips.total_trips' | translate }}</span>
+        <h3>{{ loading() || failed() ? '—' : records().length }}</h3>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon orange"><i class="pi pi-calendar"></i></div>
+      <div>
+        <span>{{ 'trips.planned_trips' | translate }}</span>
+        <h3>{{ loading() || failed() ? '—' : planned() }}</h3>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon purple"><i class="pi pi-truck"></i></div>
+      <div>
+        <span>{{ 'trips.in_progress' | translate }}</span>
+        <h3>{{ loading() || failed() ? '—' : inProgress() }}</h3>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon green"><i class="pi pi-check-circle"></i></div>
+      <div>
+        <span>{{ 'trips.completed_trips' | translate }}</span>
+        <h3>{{ loading() || failed() ? '—' : completed() }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="table-card">
+    <div class="table-toolbar">
+      <h2>{{ 'trips.trips_list' | translate }}</h2>
+      <div class="filters">
+        <label class="search-box"><i class="pi pi-search" aria-hidden="true"></i><input #searchInput type="search"
+            [attr.aria-label]="'trips.search_trips' | translate"
+            [placeholder]="'trips.search_trips_routes_or_vehicles' | translate" [value]="search()"
+            (input)="search.set(searchInput.value)" /></label><select
+          [attr.aria-label]="'trips.filter_by_trip_status' | translate" [value]="statusFilter()"
+          (change)="statusFilter.set(+$any($event.target).value)">
+          <option value="-1">{{ 'trips.all_statuses' | translate }}</option>
+          @for (s of statuses; track s.value) {
+          <option [value]="s.value">{{ (s.label) | translate }}</option>
+          }
+        </select><select [attr.aria-label]="'trips.filter_by_trip_type' | translate" [value]="typeFilter()"
+          (change)="typeFilter.set(+$any($event.target).value)">
+          <option value="0">{{ 'trips.all_types' | translate }}</option>
+          @for (t of types; track t.value) {
+          <option [value]="t.value">{{ (t.label) | translate }}</option>
+          }
+        </select><select [attr.aria-label]="'trips.filter_by_vehicle_source' | translate" [value]="sourceFilter()"
+          (change)="sourceFilter.set(+$any($event.target).value)">
+          <option value="0">{{ 'trips.all_vehicles' | translate }}</option>
+          @for (s of sources; track s.value) {
+          <option [value]="s.value">{{ (s.label) | translate }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (loading()) {
+    <div class="state" role="status">{{ 'trips.loading_trips' | translate }}</div>
+    } @else if (failed()) {
+    <div class="state" role="alert">
+      {{ 'trips.could_not_load_trips' | translate }} <button type="button" (click)="load()">{{ 'trips.retry' | translate
+        }}</button>
+    </div>
+    } @else if (!filtered().length) {
+    <div class="state">{{ 'trips.no_trips_found' | translate }}</div>
+    } @else {
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ 'trips.id' | translate }}</th>
+            <th>{{ 'trips.vehicle_source' | translate }}</th>
+            <th>{{ 'trips.vehicle_plate' | translate }}</th>
+            <th>{{ 'trips.driver' | translate }}</th>
+            <th>{{ 'trips.trip_type' | translate }}</th>
+            <th>{{ 'trips.start' | translate }}</th>
+            <th>{{ 'trips.destination' | translate }}</th>
+            <th>{{ 'trips.loading' | translate }}</th>
+            <th>{{ 'trips.unloading' | translate }}</th>
+            <th>{{ 'trips.sale_price' | translate }}</th>
+            <th>{{ 'trips.collection' | translate }}</th>
+            <th>{{ 'trips.status' | translate }}</th>
+            <th>{{ 'trips.actions' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (x of filtered(); track x.tripId) {
+          <tr>
+            <td>#{{ x.tripId }}</td>
+            <td>{{ (label(sources, x.vehicleSourceType)) | translate }}</td>
+            <td>{{ vehicleName(x) }}</td>
+            <td>{{ driverName(x) }}</td>
+            <td>{{ (label(types, x.tripType)) | translate }}</td>
+            <td>{{ x.startLocation }}</td>
+            <td>{{ x.destination }}</td>
+            <td>{{ x.loadingDate.slice(0, 16).replace('T', ' ') }}</td>
+            <td>{{ x.unloadingDate.slice(0, 16).replace('T', ' ') }}</td>
+            <td>{{ x.salePrice ?? '—' }}</td>
+            <td>{{ (label(methods, x.collectionMethod)) | translate }}</td>
+            <td>
+              <span class="status-badge" [class.planned]="x.status === 0" [class.progress]="x.status === 1"
+                [class.completed]="x.status === 2" [class.cancelled]="x.status === 3">{{ (label(statuses, x.status)) |
+                translate }}</span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button type="button" class="icon-button" [title]="'trips.view_trip' | translate"
+                  [attr.aria-label]="'dynamic.view_trip' | translate: { name: x.tripId }" (click)="showDetails(x)">
+                  <i class="pi pi-eye"></i></button><button type="button" class="icon-button"
+                  [title]="'trips.edit_trip' | translate"
+                  [attr.aria-label]="'dynamic.edit_trip' | translate: { name: x.tripId }" (click)="openEdit(x)">
+                  <i class="pi pi-pencil"></i>
+                </button>
+                @if (x.status === 3) {
+                <button type="button" class="icon-button danger" [title]="'trips.delete_trip' | translate"
+                  [attr.aria-label]="'dynamic.delete_trip' | translate: { name: x.tripId }" [disabled]="deleting()"
+                  (click)="delete(x)">
+                  <i class="pi pi-trash"></i>
+                </button>
+                }
+              </div>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  </div>
+</div>
+
+<p-dialog [header]="(editingId() === null ? 'Add Trip' : 'Edit Trip') | translate" [modal]="true"
+  [visible]="formVisible()" (visibleChange)="formVisible.set($event)" [style]="{ width: '900px', maxWidth: '96vw' }">
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <section class="form-section">
+      <h3>{{ 'trips.vehicle_information' | translate }}</h3>
+      <div class="form-grid">
+        <label class="form-field">{{ 'trips.vehicle_source' | translate }}<select formControlName="vehicleSourceType"
+            (change)="onVehicleSourceChange()">
+            @for (s of sources; track s.value) {
+            <option [ngValue]="s.value">{{ (s.label) | translate }}</option>
+            }
+          </select></label>
+        @if (form.controls.vehicleSourceType.value === 1) {
+        <label class="form-field">{{ 'trips.company_assignment' | translate }}<select formControlName="assignmentId">
+            <option [ngValue]="null">{{ 'trips.select_assignment' | translate }}</option>
+            @for (a of assignments(); track a.assignmentId) {
+            <option [ngValue]="a.assignmentId">
+              {{ 'fragments.plate' | translate }} {{ a.plateNumber }} · {{ 'fragments.assignmentNumber' | translate }}{{
+              a.assignmentId }} ·
+              {{ a.startDate.slice(0, 10) }} {{ 'fragments.to' | translate }} {{ (a.endDate?.slice(0, 10) || 'open') |
+              translate }}
+            </option>
+            }
+          </select></label><label class="form-field">{{ 'trips.driver' | translate }}<select formControlName="driverId">
+            <option [ngValue]="null">{{ 'trips.select_active_driver' | translate }}</option>
+            @for (d of activeDrivers(); track d.driverId) {
+            <option [ngValue]="d.driverId">
+              {{ d.fullName }} · {{ 'fragments.licenseUntil' | translate }} {{ d.licenseExpiryDate }}
+            </option>
+            }
+          </select></label>
+        } @else {
+        <label class="form-field">{{ 'trips.external_vehicle' | translate }}<select formControlName="externalVehicleId">
+            <option [ngValue]="null">{{ 'trips.select_vehicle' | translate }}</option>
+            @for (v of externalVehicles(); track v.id) {
+            <option [ngValue]="v.id">{{ 'fragments.plate' | translate }} {{ v.plateNumber }} · {{ v.driverName }}
+            </option>
+            }
+          </select></label>
+        }
+      </div>
+    </section>
+    <section class="form-section">
+      <h3>{{ 'trips.container_operation' | translate }}</h3>
+      <div class="form-grid">
+        <label class="form-field">{{ 'trips.trip_type' | translate }}<select formControlName="tripType"
+            (change)="onTripTypeChange()">
+            @for (t of types; track t.value) {
+            <option [ngValue]="t.value">{{ (t.label) | translate }}</option>
+            }
+          </select></label>
+        @switch (form.controls.tripType.value) {
+        @case (1) {
+        <label class="form-field">{{ 'trips.import_bill' | translate }}<select formControlName="incomingAqabaBillId"
+            (change)="onImportBillChange()">
+            <option [ngValue]="null">{{ 'trips.select_bill' | translate }}</option>
+            @for (b of importBills(); track b.id) {
+            <option [ngValue]="b.id">{{ b.billNumber }} · {{ b.customerName }}</option>
+            }
+          </select></label><label class="form-field">{{ 'trips.import_container' | translate }}<select
+            formControlName="incomingAqabaContainerId">
+            <option [ngValue]="null">{{ 'trips.select_container' | translate }}</option>
+            @for (c of selectedImportBill()?.containers ?? []; track c.id) {
+            <option [ngValue]="c.id">{{ c.containerNumber }}</option>
+            }
+          </select></label>
+        }
+        @case (2) {
+        <label class="form-field">{{ 'trips.export_booking' | translate }}<select formControlName="exportAqabaBookingId"
+            (change)="onExportBookingChange()">
+            <option [ngValue]="null">{{ 'trips.select_booking' | translate }}</option>
+            @for (b of exportBookings(); track b.id) {
+            <option [ngValue]="b.id">{{ b.bookingNumber }} · {{ b.customerName }}</option>
+            }
+          </select></label><label class="form-field">{{ 'trips.export_container' | translate }}<select
+            formControlName="exportAqabaContainerId">
+            <option [ngValue]="null">{{ 'trips.select_container' | translate }}</option>
+            @for (c of selectedExportBooking()?.containers ?? []; track c.id) {
+            <option [ngValue]="c.id">{{ c.containerNumber }}</option>
+            }
+          </select></label>
+        }
+        @case (3) {
+        <label class="form-field">{{ 'trips.international_import' | translate }}<select
+            formControlName="internationalIncomingId">
+            <option [ngValue]="null">{{ 'trips.select_import' | translate }}</option>
+            @for (x of internationalImports(); track x.id) {
+            <option [ngValue]="x.id">{{ x.cargoNumber }} · {{ x.customerName }}</option>
+            }
+          </select></label>
+        }
+        @case (4) {
+        <label class="form-field">{{ 'trips.international_export' | translate }}<select
+            formControlName="internationalExportId">
+            <option [ngValue]="null">{{ 'trips.select_export' | translate }}</option>
+            @for (x of internationalExports(); track x.id) {
+            <option [ngValue]="x.id">{{ x.cargoNumber }} · {{ x.customerName }}</option>
+            }
+          </select></label>
+        }
+        @case (5) {
+        <label class="form-field">{{ 'trips.inland_transport' | translate }}<select formControlName="inlandTransportId">
+            <option [ngValue]="null">{{ 'trips.select_transport' | translate }}</option>
+            @for (x of inlandTransports(); track x.id) {
+            <option [ngValue]="x.id">{{ x.tripCode }} · {{ x.customerName }}</option>
+            }
+          </select></label>
+        }
+        }
+      </div>
+    </section>
+    <section class="form-section">
+      <h3>{{ 'trips.route_and_dates' | translate }}</h3>
+      <div class="form-grid">
+        <label class="form-field">{{ 'trips.start_location' | translate }}<input formControlName="startLocation"
+            maxlength="100" /></label><label class="form-field">{{ 'trips.destination' | translate }}<input
+            formControlName="destination" maxlength="100" /></label><label class="form-field">{{ 'trips.loading_date' |
+          translate }}<input type="datetime-local" formControlName="loadingDate" /></label><label class="form-field">{{
+          'trips.unloading_date' | translate }}<input type="datetime-local"
+            formControlName="unloadingDate" /></label><label class="form-field">{{ 'trips.distance' | translate }}<input
+            type="number" min="0" step="0.01" formControlName="distance" /></label>
+        @if (editingId() !== null) {
+        <label class="form-field">{{ 'trips.status' | translate }}<select formControlName="status">
+            @for (s of statuses; track s.value) {
+            <option [ngValue]="s.value">{{ (s.label) | translate }}</option>
+            }
+          </select></label>
+        }
+      </div>
+    </section>
+    <section class="form-section">
+      <h3>{{ 'trips.expenses_and_financial_information' | translate }}</h3>
+      <p class="section-note">
+        {{ 'trips.enter_each_amount_as_recorded_advance_payment_is_shown_separatel' | translate }}
+      </p>
+      <div class="form-grid">
+        <label class="form-field">{{ 'trips.driver_tip' | translate }}<input type="number" min="0" step="0.01"
+            formControlName="driverTip" /></label><label class="form-field">{{ 'trips.diesel_cost' | translate }}<input
+            type="number" min="0" step="0.01" formControlName="dieselCost" /></label><label class="form-field">{{
+          'trips.leakage_cost' | translate }}<input type="number" min="0" step="0.01"
+            formControlName="leakageCost" /></label><label class="form-field">{{ 'trips.other_expenses' | translate
+          }}<input type="number" min="0" step="0.01" formControlName="otherExpenses" /></label><label
+          class="form-field">{{ 'trips.purchase_price' | translate }}<input type="number" min="0" step="0.01"
+            formControlName="purchasePrice" /></label><label class="form-field">{{ 'trips.sale_price' | translate
+          }}<input type="number" min="0" step="0.01" formControlName="salePrice" /></label><label class="form-field">{{
+          'trips.advance_payment' | translate }}<input type="number" min="0" step="0.01"
+            formControlName="advancePayment" /></label><label class="form-field">{{ 'trips.collection_method' |
+          translate }}<select formControlName="collectionMethod">
+            <option [ngValue]="null">{{ 'trips.not_selected' | translate }}</option>
+            @for (m of methods; track m.value) {
+            <option [ngValue]="m.value">{{ (m.label) | translate }}</option>
+            }
+          </select></label><label class="form-field wide">{{ 'trips.notes' | translate }}<textarea
+            formControlName="notes" maxlength="500" rows="3"></textarea>
+        </label>
+      </div>
+    </section>
+    <div class="dialog-actions">
+      <button type="button" class="cancel-button" (click)="formVisible.set(false)" [disabled]="saving()">
+        {{ 'trips.cancel' | translate }}</button><button type="submit" class="save-button" [disabled]="saving()">
+        {{ (saving() ? 'Saving...' : 'Save Trip') | translate }}
+      </button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog [header]="'trips.trip_details' | translate" [modal]="true" [visible]="details() !== null"
+  (visibleChange)="!$event && details.set(null)" [style]="{ width: '760px', maxWidth: '95vw' }">
+  @if (details(); as x) {
+  <div class="details-grid">
+    <div>
+      <strong>{{ 'trips.trip_id' | translate }}</strong><span>#{{ x.tripId }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.status' | translate }}</strong><span>{{ (label(statuses, x.status)) | translate }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.vehicle_source' | translate }}</strong><span>{{ (label(sources, x.vehicleSourceType)) |
+        translate }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.vehicle_plate' | translate }}</strong><span>{{ vehicleName(x) }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.driver' | translate }}</strong><span>{{ driverName(x) }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.trip_type' | translate }}</strong><span>{{ (label(types, x.tripType)) | translate }}</span>
+    </div>
+    <div class="wide">
+      <strong>{{ 'trips.related_operation' | translate }}</strong><span>{{ relatedName(x) }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.start_location' | translate }}</strong><span>{{ x.startLocation }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.destination' | translate }}</strong><span>{{ x.destination }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.loading_date' | translate }}</strong><span>{{ x.loadingDate.slice(0, 16).replace('T', ' ')
+        }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.unloading_date' | translate }}</strong><span>{{ x.unloadingDate.slice(0, 16).replace('T', ' ')
+        }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.distance' | translate }}</strong><span>{{ x.distance }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.collection_method' | translate }}</strong><span>{{ (label(methods, x.collectionMethod)) |
+        translate }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.driver_tip' | translate }}</strong><span>{{ x.driverTip ?? '—' }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.diesel_cost' | translate }}</strong><span>{{ x.dieselCost ?? '—' }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.leakage_cost' | translate }}</strong><span>{{ x.leakageCost ?? '—' }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.other_expenses' | translate }}</strong><span>{{ x.otherExpenses ?? '—' }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.purchase_price' | translate }}</strong><span>{{ x.purchasePrice ?? '—' }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.sale_price' | translate }}</strong><span>{{ x.salePrice ?? '—' }}</span>
+    </div>
+    <div>
+      <strong>{{ 'trips.advance_payment' | translate }}</strong><span>{{ x.advancePayment ?? '—' }}</span>
+    </div>
+    <div class="wide">
+      <strong>{{ 'trips.notes' | translate }}</strong><span>{{ x.notes || '—' }}</span>
+    </div>
+  </div>
+  }
+</p-dialog>

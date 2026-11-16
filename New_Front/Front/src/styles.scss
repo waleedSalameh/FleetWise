@@ -1,0 +1,92 @@
+/* =====================================
+   Global Imports
+===================================== */
+
+@import 'primeicons/primeicons.css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+
+/* =====================================
+   Global Reset
+===================================== */
+
+* {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: #334155;
+  background: #f8fafc;
+}
+
+:root[lang='ar'] body,
+:root[lang='ar'] body :not(.pi),
+:root[lang='ar'] input,
+:root[lang='ar'] button,
+:root[lang='ar'] select,
+:root[lang='ar'] textarea,
+:root[lang='ar'] .p-component {
+  font-family: Tahoma, Arial, sans-serif;
+}
+
+:root[dir='rtl'] .p-dialog,
+:root[dir='rtl'] .p-select-overlay,
+:root[dir='rtl'] .p-datepicker {
+  direction: rtl;
+  text-align: start;
+}
+
+
+/* =====================================
+   Global PrimeNG Dialog Theme
+===================================== */
+
+.p-dialog {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+
+  .p-dialog-header {
+    background: #ffffff;
+    color: #1e293b;
+    padding: 22px 24px;
+    border-bottom: 1px solid #f1f5f9;
+
+    .p-dialog-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+  }
+
+  .p-dialog-content {
+    background: #ffffff;
+    padding: 22px 24px 24px;
+    color: #334155;
+  }
+}
+
+.p-dialog-mask {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+}
+
+
+/* =====================================
+   Global Result Dialog Icons
+===================================== */
+
+.success-icon {
+  background: #f0fdf4 !important;
+  color: #16a34a !important;
+}
+
+.error-icon {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+}
+

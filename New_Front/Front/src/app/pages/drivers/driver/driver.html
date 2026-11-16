@@ -1,0 +1,236 @@
+<div class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>{{ 'drivers.driver.drivers' | translate }}</h1>
+    </div>
+
+    <button class="add-button" (click)="openAddDialog()">
+      <i class="pi pi-plus"></i>
+      {{ 'drivers.driver.add_driver' | translate }}
+    </button>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div class="summary-icon total">
+        <i class="pi pi-users"></i>
+      </div>
+      <div>
+        <span>{{ 'drivers.driver.total_drivers' | translate }}</span>
+        <h2>{{ drivers.length }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon available">
+        <i class="pi pi-check-circle"></i>
+      </div>
+      <div>
+        <span>{{ 'drivers.driver.active_drivers' | translate }}</span>
+        <h2>{{ activeDriversCount }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon inactive">
+        <i class="pi pi-user-minus"></i>
+      </div>
+      <div>
+        <span>{{ 'drivers.driver.inactive_drivers' | translate }}</span>
+        <h2>{{ inactiveDriversCount }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon suspended">
+        <i class="pi pi-ban"></i>
+      </div>
+      <div>
+        <span>{{ 'drivers.driver.suspended_drivers' | translate }}</span>
+        <h2>{{ suspendedDriversCount }}</h2>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card">
+
+    <div class="table-toolbar">
+      <div>
+        <h3>{{ 'drivers.driver.drivers_list' | translate }}</h3>
+      </div>
+
+      <div class="search-box">
+        <i class="pi pi-search"></i>
+        <input type="text" [placeholder]="'drivers.driver.search_drivers' | translate" [(ngModel)]="searchText">
+      </div>
+    </div>
+
+    <div class="table-responsive">
+
+      <table class="vehicles-table">
+
+        <thead>
+          <tr>
+            <th>{{ 'drivers.driver.driver_id' | translate }}</th>
+            <th>{{ 'drivers.driver.full_name' | translate }}</th>
+            <th>{{ 'drivers.driver.phone' | translate }}</th>
+            <th>{{ 'drivers.driver.license_number' | translate }}</th>
+            <th>{{ 'drivers.driver.license_expiry' | translate }}</th>
+            <th>{{ 'drivers.driver.status' | translate }}</th>
+            <th>{{ 'drivers.driver.actions' | translate }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngIf="isLoading">
+            <td colspan="7" class="empty-state">
+              <i class="pi pi-spin pi-spinner"></i>
+              {{ 'drivers.driver.loading_drivers' | translate }}
+            </td>
+          </tr>
+
+          <tr *ngIf="!isLoading && drivers.length === 0">
+            <td colspan="7" class="empty-state">
+              <i class="pi pi-users"></i>
+              <span>{{ 'drivers.driver.no_drivers_found' | translate }}</span>
+            </td>
+          </tr>
+
+          <tr *ngIf="!isLoading && drivers.length > 0 && filteredDrivers.length === 0">
+            <td colspan="7" class="empty-state">
+              <i class="pi pi-search"></i>
+              <span>{{ 'drivers.driver.no_matching_drivers_found' | translate }}</span>
+            </td>
+          </tr>
+
+          <tr *ngFor="let driver of filteredDrivers">
+
+            <td>#{{ driver.driverId }}</td>
+
+            <td class="driver-name">
+              {{ driver.fullName }}
+            </td>
+
+            <td>{{ driver.phone }}</td>
+
+            <td>{{ driver.licenseNumber }}</td>
+
+            <td>
+              {{ driver.licenseExpiryDate | date:'dd/MM/yyyy' }}
+            </td>
+
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(driver.status)">
+                {{ (getStatusLabel(driver.status)) | translate }}
+              </span>
+            </td>
+
+            <td>
+              <div class="action-buttons">
+
+                <button class="icon-button edit" [title]="'drivers.driver.edit_driver' | translate" (click)="openEditDialog(driver)">
+                  <i class="pi pi-pencil"></i>
+                </button>
+
+                <button class="icon-button delete" [title]="'drivers.driver.delete_driver' | translate" (click)="confirmDelete(driver)">
+                  <i class="pi pi-trash"></i>
+                </button>
+
+              </div>
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- Add / Edit Driver Dialog -->
+<p-dialog [(visible)]="displayDriverDialog" [modal]="true" [draggable]="false" [resizable]="false"
+  [style]="{ width: '600px', maxWidth: '95vw' }" [header]="(isEditMode ? 'Edit Driver' : 'Add New Driver') | translate"
+  (onHide)="closeDialog()">
+
+  <div class="vehicle-form">
+
+    <p class="dialog-description">
+      {{ (isEditMode
+      ? 'Update the driver information below.'
+      : 'Enter the driver information below to register a new driver.') | translate }}
+    </p>
+
+    <div class="form-grid">
+
+      <!-- Full Name -->
+      <div class="form-field full-width">
+        <label>{{ 'drivers.driver.full_name' | translate }} <span>*</span></label>
+        <input type="text" [(ngModel)]="newDriver.fullName" name="fullName" [placeholder]="'drivers.driver.enter_full_name' | translate">
+      </div>
+
+      <!-- Phone -->
+      <div class="form-field">
+        <label>{{ 'drivers.driver.phone_number' | translate }} <span>*</span></label>
+        <input type="tel" [(ngModel)]="newDriver.phone" name="phone" [placeholder]="'drivers.driver.07xxxxxxxx' | translate">
+      </div>
+
+      <!-- License Number -->
+      <div class="form-field">
+        <label>{{ 'drivers.driver.license_number' | translate }} <span>*</span></label>
+        <input type="text" [(ngModel)]="newDriver.licenseNumber" name="licenseNumber"
+          [placeholder]="'drivers.driver.enter_license_number' | translate">
+      </div>
+
+      <!-- License Expiry -->
+      <div class="form-field">
+        <label>{{ 'drivers.driver.license_expiry_date' | translate }} <span>*</span></label>
+        <input type="date" [(ngModel)]="newDriver.licenseExpiryDate" name="licenseExpiryDate">
+      </div>
+
+      <!-- Status -->
+      <div class="form-field">
+        <label>{{ 'drivers.driver.status' | translate }} <span>*</span></label>
+        <select [(ngModel)]="newDriver.status" name="status">
+
+          <option *ngFor="let status of driverStatuses" [ngValue]="status.value">
+            {{ (status.label) | translate }}
+          </option>
+
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Dialog Actions -->
+    <div class="dialog-actions">
+
+      <button type="button" class="cancel-button" (click)="closeDialog()">
+        {{ 'drivers.driver.cancel' | translate }}
+      </button>
+
+      <button type="button" class="save-button" [disabled]="isSaving" (click)="saveDriver()">
+
+        <i class="pi" [ngClass]="isSaving ? 'pi-spin pi-spinner' : 'pi-check'">
+        </i>
+
+        {{ (isSaving ? 'Saving...' : (isEditMode ? 'Update Driver' : 'Save Driver')) | translate }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+</p-dialog>

@@ -1,0 +1,2 @@
+export interface InternationalExportSave { cargoNumber: string; customerId: number; country: string; cargoType: number; loadingLocation: string; factoryName: string; weight: number; notes: string | null; customsDeclarationNumber: string; tripDuration: number; unloadingLocation: string; distance: number; status: number; isPaid: boolean; }
+export interface InternationalExport extends InternationalExportSave { id: number; customerName: string; customerPhoneNumber: string | null; createdAt: string; }

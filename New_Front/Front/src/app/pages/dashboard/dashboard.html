@@ -1,0 +1,62 @@
+<div class="dashboard">
+
+  <div class="page-header">
+    <div>
+      <h1>{{ 'dashboard.dashboard' | translate }}</h1>
+    </div>
+
+    <button class="date-button">
+      <i class="pi pi-calendar"></i>
+      {{ 'dashboard.today' | translate }}
+    </button>
+  </div>
+
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-info">
+        <span>{{ 'dashboard.total_vehicles' | translate }}</span>
+        <h2>120</h2>
+        <small>{{ 'dashboard.registered_vehicles' | translate }}</small>
+      </div>
+      <div class="stat-icon blue">
+        <i class="pi pi-truck"></i>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-info">
+        <span>{{ 'dashboard.active_drivers' | translate }}</span>
+        <h2>45</h2>
+        <small>{{ 'dashboard.currently_available' | translate }}</small>
+      </div>
+      <div class="stat-icon green">
+        <i class="pi pi-users"></i>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-info">
+        <span>{{ 'dashboard.active_trips' | translate }}</span>
+        <h2>18</h2>
+        <small>{{ 'dashboard.trips_in_progress' | translate }}</small>
+      </div>
+      <div class="stat-icon purple">
+        <i class="pi pi-map"></i>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-info">
+        <span>{{ 'dashboard.maintenance' | translate }}</span>
+        <h2>7</h2>
+        <small>{{ 'dashboard.vehicles_under_maintenance' | translate }}</small>
+      </div>
+      <div class="stat-icon orange">
+        <i class="pi pi-wrench"></i>
+      </div>
+    </div>
+
+  </div>
+
+</div>

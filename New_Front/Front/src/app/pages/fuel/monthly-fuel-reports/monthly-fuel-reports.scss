@@ -1,0 +1,34 @@
+@use '../fuel-inventory/fuel-inventory.scss';
+.filters { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.filters input,.filters select { padding:10px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; }
+.detail-body { max-height:70vh; overflow:auto; color:#1e293b; }
+.detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:16px 0; }
+.detail-grid>div { padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; }
+.monthly-consumption-summary { margin:16px 0; }
+.monthly-consumption-summary h3 { margin:0 0 10px; font-size:16px; color:#0f172a; }
+.consumption-summary-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.consumption-summary-card { padding:16px; border-radius:10px; display:flex; flex-direction:column; gap:6px; }
+.consumption-summary-card span { font-size:13px; color:#475569; }
+.consumption-summary-card strong { font-size:22px; color:#0f172a; }
+.consumption-summary-card.liters { background:#eff6ff; border:1px solid #bfdbfe; }
+.consumption-summary-card.cost { background:#f0fdf4; border:1px solid #bbf7d0; }
+.notice { padding:12px; color:#9a3412; background:#fff7ed; border-radius:8px; }
+.purchase-form { max-height:75vh; overflow:auto; }
+.action-buttons { display:flex; align-items:center; gap:8px; }
+.icon-button {
+  width:32px;
+  height:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:0;
+  border-radius:7px;
+  cursor:pointer;
+  transition:0.2s;
+}
+.icon-button.edit {
+  background:#eff6ff;
+  color:#2563eb;
+}
+.icon-button.edit:hover { background:#dbeafe; }
+@media(max-width:700px) { .page-header { align-items:flex-start; flex-direction:column; gap:12px; } .detail-grid,.consumption-summary-grid { grid-template-columns:1fr; } .filters { width:100%; } .filters>* { max-width:100%; } }

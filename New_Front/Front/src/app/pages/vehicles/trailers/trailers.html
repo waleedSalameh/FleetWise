@@ -1,0 +1,229 @@
+<div class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>{{ 'vehicles.trailers.trailers' | translate }}</h1>
+    </div>
+
+    <button class="add-button" (click)="openAddDialog()">
+      <i class="pi pi-plus"></i>
+      {{ 'vehicles.trailers.add_trailer' | translate }}
+    </button>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div class="summary-icon blue">
+        <i class="pi pi-truck"></i>
+      </div>
+      <div>
+        <span>{{ 'vehicles.trailers.total_trailers' | translate }}</span>
+        <h2>{{ trailers.length }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon green">
+        <i class="pi pi-box"></i>
+      </div>
+      <div>
+        <span>{{ 'vehicles.trailers.container_transport' | translate }}</span>
+        <h2>{{ getCountByType(1) }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon purple">
+        <i class="pi pi-filter"></i>
+      </div>
+      <div>
+        <span>{{ 'vehicles.trailers.crude_oil' | translate }}</span>
+        <h2>{{ getCountByType(2) }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon orange">
+        <i class="pi pi-cog"></i>
+      </div>
+      <div>
+        <span>{{ 'vehicles.trailers.other_types' | translate }}</span>
+        <h2>{{ getCountByType(3) + getCountByType(4) }}</h2>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card">
+
+    <!-- Toolbar -->
+    <div class="table-toolbar">
+      <div class="search-box">
+        <i class="pi pi-search"></i>
+        <input type="text" [placeholder]="'vehicles.trailers.search_trailers' | translate" [(ngModel)]="searchText">
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="empty-state" *ngIf="isLoading">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>{{ 'vehicles.trailers.loading_trailers' | translate }}</p>
+    </div>
+
+    <!-- Error -->
+    <div class="empty-state" *ngIf="!isLoading && errorMessage">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ errorMessage | translate }}</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage && trailers.length === 0">
+      <i class="pi pi-truck"></i>
+      <p>{{ 'vehicles.trailers.no_trailers_found' | translate }}</p>
+    </div>
+
+    <!-- No Search Results -->
+    <div class="empty-state"
+      *ngIf="!isLoading && !errorMessage && trailers.length > 0 && filteredTrailers.length === 0">
+      <i class="pi pi-search"></i>
+      <p>{{ 'vehicles.trailers.no_matching_trailers_found' | translate }}</p>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive" *ngIf="!isLoading && !errorMessage && filteredTrailers.length > 0">
+
+      <table class="vehicles-table">
+        <thead>
+          <tr>
+            <th>{{ 'vehicles.trailers.plate_number' | translate }}</th>
+            <th>{{ 'vehicles.trailers.axle_count' | translate }}</th>
+            <th>{{ 'vehicles.trailers.max_load' | translate }}</th>
+            <th>{{ 'vehicles.trailers.trailer_type' | translate }}</th>
+            <th>{{ 'vehicles.trailers.license_expiry_date' | translate }}</th>
+            <th>{{ 'vehicles.trailers.actions' | translate }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let trailer of filteredTrailers">
+
+            <td>{{ trailer.plateNumber }}</td>
+
+            <td>{{ trailer.axleCount }}</td>
+
+            <td>{{ trailer.maxLoad | number:'1.0-2' }}</td>
+
+            <td>
+              {{ (getTrailerTypeName(trailer.trailerType)) | translate }}
+            </td>
+
+            <td>
+              {{ trailer.licenseExpiryDate | date:'dd/MM/yyyy' }}
+            </td>
+
+            <td>
+              <div class="action-buttons">
+
+                <button class="icon-button edit" [title]="'vehicles.trailers.edit' | translate" (click)="openEditDialog(trailer)">
+                  <i class="pi pi-pencil"></i>
+                </button>
+
+                <button class="icon-button delete" [title]="'vehicles.trailers.delete' | translate" (click)="confirmDelete(trailer.id)">
+                  <i class="pi pi-trash"></i>
+                </button>
+
+              </div>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- Add / Edit Dialog -->
+  <p-dialog [(visible)]="displayTrailerDialog" [modal]="true" [draggable]="false" [resizable]="false"
+    [style]="{ width: '550px' }" [header]="(isEditMode ? 'Edit Trailer' : 'Add New Trailer') | translate">
+
+    <div class="vehicle-form">
+
+      <p class="dialog-description">
+        {{ (isEditMode
+        ? 'Update trailer information.'
+        : 'Enter the trailer information below.') | translate }}
+      </p>
+
+      <div class="form-grid">
+
+        <!-- Plate Number -->
+        <div class="form-field">
+          <label>{{ 'vehicles.trailers.plate_number' | translate }}</label>
+          <input type="number" [(ngModel)]="newTrailer.plateNumber" [placeholder]="'vehicles.trailers.enter_plate_number' | translate" min="1">
+        </div>
+
+        <!-- Axle Count -->
+        <div class="form-field">
+          <label>{{ 'vehicles.trailers.axle_count' | translate }}</label>
+          <input type="number" [(ngModel)]="newTrailer.axleCount" [placeholder]="'vehicles.trailers.enter_axle_count' | translate" min="1">
+        </div>
+
+        <!-- Max Load -->
+        <div class="form-field">
+          <label>{{ 'vehicles.trailers.max_load' | translate }}</label>
+          <input type="number" [(ngModel)]="newTrailer.maxLoad" [placeholder]="'vehicles.trailers.enter_maximum_load' | translate" min="0.01" step="0.01">
+        </div>
+
+        <!-- Trailer Type -->
+        <div class="form-field">
+          <label>{{ 'vehicles.trailers.trailer_type' | translate }}</label>
+
+          <select [(ngModel)]="newTrailer.trailerType" name="trailerType" required>
+            <option [ngValue]="null" disabled>{{ 'vehicles.trailers.select_trailer_type' | translate }}</option>
+            <option [ngValue]="1">{{ 'vehicles.trailers.container_transport' | translate }}</option>
+            <option [ngValue]="2">{{ 'vehicles.trailers.crude_oil' | translate }}</option>
+            <option [ngValue]="3">{{ 'vehicles.trailers.refrigerated' | translate }}</option>
+            <option [ngValue]="4">{{ 'vehicles.trailers.sides' | translate }}</option>
+          </select>
+        </div>
+
+        <!-- License Expiry Date -->
+        <div class="form-field full-width">
+          <label>{{ 'vehicles.trailers.license_expiry_date' | translate }}</label>
+          <input type="date" [(ngModel)]="newTrailer.licenseExpiryDate">
+        </div>
+
+      </div>
+
+      <!-- Error Message -->
+      <div class="form-error" *ngIf="errorMessage">
+        {{ errorMessage | translate }}
+      </div>
+
+      <!-- Dialog Actions -->
+      <div class="dialog-actions">
+
+        <button class="cancel-button" type="button" (click)="closeDialog()" [disabled]="isSaving">
+          {{ 'vehicles.trailers.cancel' | translate }}
+        </button>
+
+        <button class="save-button" type="button" (click)="saveTrailer()" [disabled]="isSaving">
+
+          <i class="pi" [ngClass]="isSaving ? 'pi-spin pi-spinner' : 'pi-check'">
+          </i>
+
+          {{ (isSaving ? 'Saving...' : (isEditMode ? 'Update Trailer' : 'Save Trailer')) | translate }}
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </p-dialog>
+
+</div>

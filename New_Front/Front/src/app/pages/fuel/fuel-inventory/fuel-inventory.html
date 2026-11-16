@@ -1,0 +1,236 @@
+<div class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>{{ 'fuel.fuel_inventory.fuel_inventory' | translate }}</h1>
+      <p>{{ 'fuel.ui.094' | translate }}</p>
+    </div>
+
+    <button class="add-button" (click)="openAddDialog()">
+      <i class="pi pi-plus"></i>
+      {{ 'fuel.fuel_inventory.add_fuel_purchase' | translate }}
+    </button>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div class="summary-icon blue">
+        <i class="pi pi-box"></i>
+      </div>
+      <div>
+        <span>{{ 'fuel.ui.095' | translate }}</span>
+        <h3>{{ (summary?.totalQuantity ?? 0) | number:'1.2-2' }} {{ 'fuel.unit_liter' | translate }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon green">
+        <i class="pi pi-database"></i>
+      </div>
+      <div>
+        <span>{{ 'fuel.ui.096' | translate }}</span>
+        <h3>{{ (summary?.purchasedQuantity ?? 0) | number:'1.2-2' }} {{ 'fuel.unit_liter' | translate }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon orange">
+        <i class="pi pi-chart-line"></i>
+      </div>
+      <div>
+        <span>{{ 'fuel.ui.097' | translate }}</span>
+        <h3>{{ (summary?.returnedQuantity ?? 0) | number:'1.2-2' }} {{ 'fuel.unit_liter' | translate }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon purple">
+        <i class="pi pi-check-circle"></i>
+      </div>
+      <div>
+        <span>{{ 'fuel.ui.098' | translate }}</span>
+        <h3>{{ (summary?.totalValueJod ?? 0) | number:'1.2-2' }} {{ 'fuel.currency_jod' | translate }}</h3>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Inventory Table -->
+  <div class="table-card">
+
+    <div class="table-toolbar">
+      <div>
+        <h3>{{ 'fuel.fuel_inventory.fuel_purchase_history' | translate }}</h3>
+      </div>
+
+      <div class="filters">
+
+        <select [(ngModel)]="selectedStatus">
+          <option value="all">{{ 'fuel.fuel_inventory.all_statuses' | translate }}</option>
+          <option [ngValue]="0">{{ 'fuel.fuel_inventory.in_use' | translate }}</option>
+          <option [ngValue]="1">{{ 'fuel.fuel_inventory.completed' | translate }}</option>
+        </select>
+
+        <div class="search-box">
+          <i class="pi pi-search"></i>
+          <input type="text" [placeholder]="'fuel.fuel_inventory.search_by_id_supplier_or_invoice' | translate" [(ngModel)]="searchText">
+        </div>
+
+      </div>
+    </div>
+
+    <div class="table-responsive">
+
+      <table class="inventory-table">
+
+        <thead>
+          <tr>
+            <th>{{ 'fuel.fuel_inventory.purchase_id' | translate }}</th>
+            <th>{{ 'fuel.ui.045' | translate }}</th>
+            <th>{{ 'fuel.fuel_inventory.purchase_date' | translate }}</th>
+            <th>{{ 'fuel.fuel_inventory.supplier' | translate }}</th>
+            <th>{{ 'fuel.fuel_inventory.invoice_number' | translate }}</th>
+            <th>{{ 'fuel.fuel_inventory.purchased_quantity' | translate }}</th>
+            <th>{{ 'fuel.fuel_inventory.remaining_quantity' | translate }}</th>
+            <th>{{ 'fuel.fuel_inventory.price_liter' | translate }}</th>
+            <th>{{ 'fuel.fuel_inventory.total_cost' | translate }}</th>
+            <th>{{ 'fuel.fuel_inventory.status' | translate }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let purchase of filteredPurchases">
+
+            <td>
+              <strong>#{{ purchase.fuelPurchaseId }}</strong>
+            </td>
+            <td>{{ getBatchOriginLabel(purchase) | translate }}</td>
+
+            <td>{{ displayDate(purchase.purchaseDate) }}</td>
+
+            <td>{{ getBatchSource(purchase) }}</td>
+
+            <td>{{ purchase.invoiceNumber || '—' }}</td>
+
+            <td>
+              {{ purchase.quantity | number:'1.2-2' }} {{ 'fuel.unit_liter' | translate }}
+            </td>
+
+            <td>
+              <strong [class.zero-stock]="purchase.remainingQuantity === 0">
+                {{ purchase.remainingQuantity | number:'1.2-2' }} {{ 'fuel.unit_liter' | translate }}
+              </strong>
+            </td>
+
+            <td>
+              {{ purchase.pricePerLiter | number:'1.3-3' }}
+            </td>
+
+            <td>
+              <strong>
+                {{ purchase.remainingQuantity * purchase.pricePerLiter | number:'1.2-2' }} {{ 'fuel.currency_jod' | translate }}
+              </strong>
+            </td>
+
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(purchase.status)">
+                {{ (getStatusLabel(purchase.status)) | translate }}
+              </span>
+            </td>
+
+          </tr>
+
+          <tr *ngIf="filteredPurchases.length === 0">
+            <td colspan="10">
+              <div class="empty-state">
+                <i class="pi pi-inbox"></i>
+                <h3>{{ 'fuel.fuel_inventory.no_fuel_purchases_found' | translate }}</h3>
+                <p>{{ 'fuel.fuel_inventory.there_are_no_fuel_purchases_matching_your_search' | translate }}</p>
+              </div>
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+  </div>
+
+  <div class="table-card" style="margin-top:20px"><div class="table-toolbar"><h3>{{ 'fuel.ui.101' | translate }}</h3></div><div class="table-responsive"><table class="inventory-table"><thead><tr><th>{{ 'fuel.ui.043' | translate }}</th><th>{{ 'fuel.ui.052' | translate }}</th><th>{{ 'fuel.ui.102' | translate }}</th><th>{{ 'fuel.ui.045' | translate }}</th><th>{{ 'fuel.ui.046' | translate }}</th><th>{{ 'fuel.ui.092' | translate }}</th><th>{{ 'fuel.ui.063' | translate }}</th></tr></thead><tbody><tr *ngFor="let movement of movements"><td>{{ displayDate(movement.date) }}</td><td>{{ movement.transactionType | translate }}</td><td>{{ movement.transactionId }}</td><td>{{ displayMovementLocation(movement.source) }}</td><td>{{ displayMovementLocation(movement.destination) }}</td><td>{{ movement.transactionType === 'InternalFueling' ? '-' : '' }}{{ movement.quantity | number:'1.2-2' }}</td><td>{{ movement.totalCostJod | number:'1.2-2' }}</td></tr><tr *ngIf="movements.length === 0"><td colspan="7" class="empty-state">{{ 'fuel.ui.103' | translate }}</td></tr></tbody></table></div></div>
+
+</div>
+
+<!-- Add Fuel Purchase Dialog -->
+<p-dialog [header]="'fuel.fuel_inventory.add_fuel_purchase' | translate" [(visible)]="dialogVisible" [modal]="true" [draggable]="false" [resizable]="false"
+  [style]="{ width: '550px', maxWidth: '95vw' }" (onHide)="closeDialog()">
+
+  <div class="purchase-form">
+
+    <p class="dialog-description">
+      {{ 'fuel.fuel_inventory.add_a_new_diesel_purchase_batch_to_your_internal_fuel_inventory' | translate }}
+    </p>
+
+    <div class="form-grid">
+
+      <div class="form-field full-width">
+        <label>{{ 'fuel.fuel_inventory.purchase_date' | translate }} <span>*</span></label>
+        <input type="date" [(ngModel)]="purchaseDate">
+      </div>
+
+      <div class="form-field">
+        <label>{{ 'fuel.fuel_inventory.quantity_liters' | translate }} <span>*</span></label>
+        <input type="number" min="0.01" step="0.01" [placeholder]="'fuel.fuel_inventory.enter_quantity' | translate" [(ngModel)]="quantity">
+      </div>
+
+      <div class="form-field">
+        <label>{{ 'fuel.fuel_inventory.price_per_liter' | translate }} <span>*</span></label>
+        <input type="number" min="0" step="0.001" [placeholder]="'fuel.fuel_inventory.enter_price' | translate" [(ngModel)]="pricePerLiter">
+      </div>
+
+      <div class="form-field full-width">
+        <label>{{ 'fuel.fuel_inventory.supplier_name' | translate }}</label>
+        <input type="text" maxlength="150" [placeholder]="'fuel.fuel_inventory.enter_supplier_name' | translate" [(ngModel)]="supplierName">
+      </div>
+
+      <div class="form-field full-width">
+        <label>{{ 'fuel.fuel_inventory.invoice_number' | translate }}</label>
+        <input type="text" maxlength="50" [placeholder]="'fuel.fuel_inventory.enter_invoice_number' | translate" [(ngModel)]="invoiceNumber">
+      </div>
+
+    </div>
+
+    <!-- Purchase Cost Preview -->
+    <div class="cost-preview" *ngIf="quantity !== null && quantity > 0 &&
+             pricePerLiter !== null && pricePerLiter >= 0">
+
+      <span>{{ 'fuel.fuel_inventory.estimated_total_cost' | translate }}</span>
+
+      <strong>
+        {{ quantity * pricePerLiter | number:'1.2-2' }}
+      </strong>
+
+    </div>
+
+    <div class="dialog-actions">
+
+      <button type="button" class="cancel-button" (click)="closeDialog()" [disabled]="isSaving">
+        {{ 'fuel.fuel_inventory.cancel' | translate }}
+      </button>
+
+      <button type="button" class="save-button" (click)="savePurchase()" [disabled]="isSaving">
+
+        <i class="pi pi-check"></i>
+        {{ (isSaving ? 'Saving...' : 'Save Purchase') | translate }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+</p-dialog>

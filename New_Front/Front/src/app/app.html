@@ -1,0 +1,50 @@
+<router-outlet></router-outlet>
+<p-dialog [(visible)]="displayConfirmDialog" [modal]="true" [draggable]="false" [resizable]="false" [closable]="true"
+  [dismissableMask]="true" [style]="{ width: '420px', maxWidth: '95vw' }" [header]="language.knownText(confirmTitle)" (onHide)="cancel()">
+  <div class="delete-dialog-content" [class.approval-dialog]="confirmVariant === 'primary'">
+
+    <div class="delete-icon">
+      <i class="pi" [class.pi-trash]="confirmVariant === 'danger'" [class.pi-check-circle]="confirmVariant === 'primary'"></i>
+    </div>
+
+    <h3>{{ 'app.are_you_sure' | translate }}</h3>
+
+    <p>{{ language.knownText(confirmMessage) }}</p>
+
+    <div class="delete-dialog-actions">
+
+      <button type="button" class="cancel-button" (click)="cancel()">
+        {{ 'app.cancel' | translate }}
+      </button>
+
+      <button type="button" [class.confirm-delete-button]="confirmVariant === 'danger'" [class.save-button]="confirmVariant === 'primary'" (click)="confirm()">
+        <i class="pi" [class.pi-trash]="confirmVariant === 'danger'" [class.pi-check]="confirmVariant === 'primary'"></i>
+        {{ confirmActionLabel | translate }}
+      </button>
+
+    </div>
+
+  </div>
+</p-dialog>
+<p-dialog [(visible)]="displayResultDialog" [modal]="true" [draggable]="false" [resizable]="false" [closable]="false"
+  [style]="{ width: '420px', maxWidth: '95vw' }" [header]="language.knownText(resultTitle)">
+  <div class="delete-dialog-content">
+
+    <div class="delete-icon" [class.success-icon]="resultType === 'success'"
+      [class.error-icon]="resultType === 'error'">
+      <i class="pi" [class.pi-check-circle]="resultType === 'success'"
+        [class.pi-times-circle]="resultType === 'error'"></i>
+    </div>
+
+    <h3>{{ language.knownText(resultTitle) }}</h3>
+
+    <p>{{ language.knownText(resultMessage) }}</p>
+
+    <div class="delete-dialog-actions">
+      <button type="button" class="save-button" (click)="displayResultDialog = false">
+        {{ 'app.ok' | translate }}
+      </button>
+    </div>
+
+  </div>
+</p-dialog>

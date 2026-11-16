@@ -1,0 +1,72 @@
+<div class="page">
+  <div class="page-header">
+    <h1>{{ 'customers.shipping_lines.shipping_lines' | translate }}</h1>
+    <button type="button" class="add-button" (click)="openAddDialog()" [disabled]="isSaving() || deletingId() !== null">
+      <i class="pi pi-plus" aria-hidden="true"></i> {{ 'customers.shipping_lines.add_shipping_line' | translate }}
+    </button>
+  </div>
+  <div class="summary-cards" [attr.aria-busy]="isLoading()">
+    <div class="summary-card"><div class="summary-icon blue"><i class="pi pi-send" aria-hidden="true"></i></div>
+      <div><span>{{ 'customers.shipping_lines.total_shipping_lines' | translate }}</span><h2>{{ isLoading() || loadFailed() ? '—' : totalRecords() }}</h2></div>
+    </div>
+    <div class="summary-card"><div class="summary-icon green"><i class="pi pi-list" aria-hidden="true"></i></div>
+      <div><span>{{ 'customers.shipping_lines.unique_codes' | translate }}</span><h2>{{ isLoading() || loadFailed() ? '—' : secondaryCount() }}</h2></div>
+    </div>
+  </div>
+  <div class="table-container">
+    <div class="table-header"><h2>{{ 'customers.shipping_lines.shipping_lines_list_2' | translate }}</h2>
+      <div class="search-box"><i class="pi pi-search" aria-hidden="true"></i>
+        <input #search type="search" [attr.aria-label]="'customers.shipping_lines.search_shipping_lines' | translate" [placeholder]="'customers.shipping_lines.search_shipping_lines_2' | translate"
+          [value]="searchText()" (input)="searchText.set(search.value)">
+        @if (searchText()) { <button type="button" (click)="searchText.set('')" [attr.aria-label]="'customers.shipping_lines.clear_search' | translate"><i class="pi pi-times" aria-hidden="true"></i></button> }
+      </div>
+    </div>
+    @if (isLoading()) { <div class="loading-state" role="status">{{ 'customers.shipping_lines.loading_shipping_lines' | translate }}</div> }
+    @else if (loadFailed()) { <div class="error-state" role="status">{{ 'customers.shipping_lines.failed_to_load_shipping_lines' | translate }}</div> }
+    @else if (!filteredRecords().length) {
+      <div class="empty-state" role="status"><i class="pi pi-send" aria-hidden="true"></i>
+        <h3>{{ 'customers.shipping_lines.no_shipping_lines_found' | translate }}</h3><p>{{ (records().length ? 'Try another search.' : 'Add the first shipping line to get started.') | translate }}</p>
+      </div>
+    } @else {
+      <div class="table-wrapper" role="region" [attr.aria-label]="'customers.shipping_lines.shipping_lines_list' | translate" tabindex="0">
+        <table><thead><tr><th scope="col">{{ 'customers.shipping_lines.id' | translate }}</th>
+            <th scope="col">{{ 'customers.shipping_lines.shipping_line_name' | translate }}</th>
+            <th scope="col">{{ 'customers.shipping_lines.code' | translate }}</th>
+            <th scope="col">{{ 'customers.shipping_lines.actions' | translate }}</th></tr></thead>
+          <tbody>@for (record of filteredRecords(); track record.shippingLineId) {
+            <tr><td>#{{ record.shippingLineId }}</td>
+                <td><strong>{{ record.name || '-' }}</strong></td>
+                <td>{{ record.code || '-' }}</td>
+              <td><div class="action-buttons">
+                <button type="button" class="edit-button" (click)="openEditDialog(record)" [disabled]="isSaving() || deletingId() !== null" [attr.aria-label]="'dynamic.edit' | translate: { name: record.name }"><i class="pi pi-pencil" aria-hidden="true"></i></button>
+                <button type="button" class="delete-button" (click)="confirmDelete(record)" [disabled]="isSaving() || deletingId() !== null" [attr.aria-label]="'dynamic.delete' | translate: { name: record.name }"><i class="pi pi-trash" aria-hidden="true"></i></button>
+              </div></td></tr>
+          }</tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+<p-dialog [visible]="dialogVisible()" (visibleChange)="closeDialog()" [modal]="true" [draggable]="false" [resizable]="false"
+  [closable]="!isSaving()" [closeOnEscape]="!isSaving()" [dismissableMask]="false"
+  [style]="{ width: '550px', maxWidth: '95vw' }" [header]="(editingId() === null ? 'Add Shipping Line' : 'Edit Shipping Line') | translate" (onHide)="closeDialog()">
+  <form class="vehicle-form" [formGroup]="form" (ngSubmit)="saveRecord()" novalidate [attr.aria-busy]="isSaving()">
+    <p class="dialog-description">{{ 'customers.shipping_lines.enter_the_shipping_line_information' | translate }}</p>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="shipping-lines-name">{{ 'customers.shipping_lines.shipping_line_name' | translate }} <span aria-hidden="true">*</span></label>
+        <input id="shipping-lines-name" type="text" formControlName="name" maxlength="150" required
+          [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid">
+      </div>
+      <div class="form-field">
+        <label for="shipping-lines-code">{{ 'customers.shipping_lines.code' | translate }} <span aria-hidden="true">*</span></label>
+        <input id="shipping-lines-code" type="text" formControlName="code" maxlength="30" required
+          [attr.aria-invalid]="form.controls.code.touched && form.controls.code.invalid">
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="cancel-button" (click)="closeDialog()" [disabled]="isSaving()">{{ 'customers.shipping_lines.cancel' | translate }}</button>
+      <button type="submit" class="save-button" [disabled]="isSaving()"><i class="pi" [class.pi-check]="!isSaving()" [class.pi-spin]="isSaving()" [class.pi-spinner]="isSaving()" aria-hidden="true"></i>{{ (isSaving() ? 'Saving...' : editingId() === null ? 'Save Shipping Line' : 'Update Shipping Line') | translate }}</button>
+    </div>
+  </form>
+</p-dialog>

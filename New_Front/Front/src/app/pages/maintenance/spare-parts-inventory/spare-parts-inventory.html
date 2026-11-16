@@ -1,0 +1,268 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>{{ 'maintenance.spare_parts_inventory.spare_parts_inventory' | translate }}</h1>
+    </div>
+
+    <button type="button" class="add-button" (click)="openAddDialog()"
+      [disabled]="isSaving() || deletingPartId() !== null">
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      {{ 'maintenance.spare_parts_inventory.add_spare_part' | translate }}
+    </button>
+  </div>
+
+  <div class="summary-grid" [attr.aria-busy]="isLoading() || isLoadingStock()">
+    <div class="summary-card">
+      <div class="summary-icon blue"><i class="pi pi-list" aria-hidden="true"></i></div>
+      <div>
+        <span>{{ 'maintenance.spare_parts_inventory.total_spare_parts' | translate }}</span>
+        <h3>{{ isLoading() || loadFailed() ? '—' : totalParts() }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon green"><i class="pi pi-building" aria-hidden="true"></i></div>
+      <div>
+        <span>{{ 'maintenance.spare_parts_inventory.in_stock' | translate }}</span>
+        <h3>{{ isLoading() || isLoadingStock() || loadFailed() || hasUnavailableStock() ? '—' : inStockParts() }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon orange"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i></div>
+      <div>
+        <span>{{ 'maintenance.spare_parts_inventory.low_stock' | translate }}</span>
+        <h3>{{ isLoading() || isLoadingStock() || loadFailed() || hasUnavailableStock() ? '—' : lowStockParts() }}</h3>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon purple"><i class="pi pi-box" aria-hidden="true"></i></div>
+      <div>
+        <span>{{ 'maintenance.spare_parts_inventory.out_of_stock' | translate }}</span>
+        <h3>{{ isLoading() || isLoadingStock() || loadFailed() || hasUnavailableStock() ? '—' : outOfStockParts() }}
+        </h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div>
+        <h3 id="spare-parts-inventory-heading">{{ 'maintenance.spare_parts_inventory.spare_parts_inventory_records' | translate }}</h3>
+      </div>
+
+      <div class="toolbar-filters">
+        <div class="search-box">
+          <i class="pi pi-search" aria-hidden="true"></i>
+          <input #partSearch type="search" [attr.aria-label]="'maintenance.spare_parts_inventory.search_spare_parts_by_name_number_brand_or_description' | translate"
+            [placeholder]="'maintenance.spare_parts_inventory.search_by_part_number_or_brand' | translate" [value]="searchText()"
+            (input)="searchText.set(partSearch.value)">
+        </div>
+        <div class="form-field stock-filter">
+          <label for="part-stock-filter">{{ 'maintenance.spare_parts_inventory.stock_status' | translate }}</label>
+          <select #stockFilter id="part-stock-filter" [value]="selectedStatus()"
+            (change)="selectedStatus.set(stockFilter.value)">
+            <option value="">{{ 'maintenance.spare_parts_inventory.all_statuses' | translate }}</option>
+            <option value="in-stock">{{ 'maintenance.spare_parts_inventory.in_stock' | translate }}</option>
+            <option value="low-stock">{{ 'maintenance.spare_parts_inventory.low_stock' | translate }}</option>
+            <option value="out-of-stock">{{ 'maintenance.spare_parts_inventory.out_of_stock' | translate }}</option>
+            <option value="unavailable">{{ 'maintenance.spare_parts_inventory.unavailable' | translate }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    @if (isLoadingStock()) {
+    <div class="inventory-notice" role="status">
+      <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+      <p>{{ 'maintenance.spare_parts_inventory.loading_stock_levels' | translate }}</p>
+    </div>
+    } @else if (hasUnavailableStock()) {
+    <div class="inventory-notice" role="status">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      <p>{{ 'maintenance.spare_parts_inventory.some_stock_levels_are_unavailable_stock_summary_counts_will_appe' | translate }}</p>
+    </div>
+    }
+
+    <div class="table-responsive" role="region" aria-labelledby="spare-parts-inventory-heading" tabindex="0">
+      <table class="vehicles-table" aria-labelledby="spare-parts-inventory-heading" [attr.aria-busy]="isLoading()">
+        <thead>
+          <tr>
+            <th scope="col">{{ 'maintenance.spare_parts_inventory.id' | translate }}</th>
+            <th scope="col">{{ 'maintenance.spare_parts_inventory.part_number' | translate }}</th>
+            <th scope="col">{{ 'maintenance.spare_parts_inventory.part_name' | translate }}</th>
+            <th scope="col">{{ 'maintenance.spare_parts_inventory.brand' | translate }}</th>
+            <th scope="col">{{ 'maintenance.spare_parts_inventory.description' | translate }}</th>
+            <th scope="col">{{ 'maintenance.spare_parts_inventory.unit' | translate }}</th>
+            <th scope="col">{{ 'maintenance.spare_parts_inventory.purchase_price' | translate }}</th>
+            <th scope="col">{{ 'maintenance.spare_parts_inventory.minimum_quantity' | translate }}</th>
+            <th scope="col">{{ 'maintenance.spare_parts_inventory.current_stock' | translate }}</th>
+            <th scope="col">{{ 'maintenance.spare_parts_inventory.status' | translate }}</th>
+            <th scope="col">{{ 'maintenance.spare_parts_inventory.actions' | translate }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @if (isLoading()) {
+          <tr>
+            <td colspan="11">
+              <div class="empty-state" role="status">
+                <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                <h3>{{ 'maintenance.spare_parts_inventory.loading_spare_parts_inventory' | translate }}</h3>
+                <p>{{ 'maintenance.spare_parts_inventory.please_wait_while_the_part_records_are_loaded' | translate }}</p>
+              </div>
+            </td>
+          </tr>
+          } @else if (loadFailed()) {
+          <tr>
+            <td colspan="11">
+              <div class="empty-state" role="status">
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                <h3>{{ 'maintenance.spare_parts_inventory.unable_to_load_spare_parts_inventory' | translate }}</h3>
+                <p>{{ 'maintenance.spare_parts_inventory.please_try_again_later' | translate }}</p>
+              </div>
+            </td>
+          </tr>
+          } @else {
+          @for (part of filteredParts(); track part.sparePartId) {
+          <tr>
+            <td>#{{ part.sparePartId }}</td>
+            <td>{{ part.partNumber }}</td>
+            <td><strong>{{ part.partName }}</strong></td>
+            <td>{{ part.brand || '-' }}</td>
+            <td class="description-cell">{{ part.description || '-' }}</td>
+            <td>{{ part.unit }}</td>
+            <td>{{ part.purchasePrice | number:'1.3-3' }}</td>
+            <td>{{ part.minimumQuantity | number:'1.0-3' }}</td>
+            <td>
+              @if (getStock(part.sparePartId) !== null) {
+              <strong>{{ getStock(part.sparePartId) | number:'1.0-3' }}</strong>
+              } @else {
+              {{ (getStockStatusLabel(part)) | translate }}
+              }
+            </td>
+            <td>
+              <span class="status-badge" [class.completed]="getStockStatus(part) === 'in-stock'"
+                [class.in-progress]="getStockStatus(part) === 'low-stock'"
+                [class.cancelled]="getStockStatus(part) === 'out-of-stock'"
+                [class.scheduled]="getStockStatus(part) === 'loading' || getStockStatus(part) === 'unavailable'">
+                {{ (getStockStatusLabel(part)) | translate }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <a class="icon-button edit" [title]="'maintenance.spare_parts_inventory.view_movements' | translate"
+                  [attr.aria-label]="'dynamic.view_movements' | translate: { name: part.partName }"
+                  routerLink="/maintenance/movements/spare-parts" [queryParams]="{ sparePartId: part.sparePartId }">
+                  <i class="pi pi-history" aria-hidden="true"></i>
+                </a>
+                <button type="button" class="icon-button edit" [title]="'maintenance.spare_parts_inventory.edit' | translate" [attr.aria-label]="'dynamic.edit' | translate: { name: part.partName }"
+                  (click)="openEditDialog(part)" [disabled]="isSaving() || deletingPartId() !== null">
+                  <i class="pi pi-pencil" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="icon-button delete" [title]="'maintenance.spare_parts_inventory.delete' | translate"
+                  [attr.aria-label]="'dynamic.delete' | translate: { name: part.partName }" (click)="confirmDelete(part)"
+                  [disabled]="isSaving() || deletingPartId() !== null"
+                  [attr.aria-busy]="deletingPartId() === part.sparePartId">
+                  <i class="pi" [class.pi-trash]="deletingPartId() !== part.sparePartId"
+                    [class.pi-spin]="deletingPartId() === part.sparePartId"
+                    [class.pi-spinner]="deletingPartId() === part.sparePartId" aria-hidden="true"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="11">
+              <div class="empty-state" role="status">
+                <i class="pi pi-inbox" aria-hidden="true"></i>
+                <h3>{{ 'maintenance.spare_parts_inventory.no_spare_parts_found' | translate }}</h3>
+                <p>{{ (parts().length ? 'There are no spare parts matching your search.' : 'Add a spare part to get
+                  started.') | translate }}</p>
+              </div>
+            </td>
+          </tr>
+          }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<p-dialog [visible]="dialogVisible()" (visibleChange)="closeDialog()" [modal]="true" [draggable]="false"
+  [resizable]="false" [closable]="!isSaving()" [closeOnEscape]="!isSaving()" [dismissableMask]="false"
+  [style]="{ width: '650px', maxWidth: '95vw' }" [header]="(isEditMode() ? 'Edit Spare Part' : 'Add Spare Part') | translate"
+  (onHide)="closeDialog()">
+  <form class="vehicle-form" [formGroup]="form" (ngSubmit)="savePart()" novalidate [attr.aria-busy]="isSaving()">
+    <p class="dialog-description">
+      {{ (isEditMode() ? 'Update the spare parts inventory information below.' : 'Enter the spare parts inventory details
+      below.') | translate }}
+    </p>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="part-number">{{ 'maintenance.spare_parts_inventory.part_number' | translate }} <span aria-hidden="true">*</span></label>
+        <input id="part-number" type="text" formControlName="partNumber" maxlength="50" required
+          [placeholder]="'maintenance.spare_parts_inventory.enter_part_number' | translate"
+          [attr.aria-invalid]="form.controls.partNumber.touched && form.controls.partNumber.invalid">
+      </div>
+      <div class="form-field">
+        <label for="part-name">{{ 'maintenance.spare_parts_inventory.part_name' | translate }} <span aria-hidden="true">*</span></label>
+        <input id="part-name" type="text" formControlName="partName" maxlength="150" required
+          [placeholder]="'maintenance.spare_parts_inventory.enter_part_name' | translate"
+          [attr.aria-invalid]="form.controls.partName.touched && form.controls.partName.invalid">
+      </div>
+
+      <div class="form-field">
+        <label for="part-brand">{{ 'maintenance.spare_parts_inventory.brand' | translate }}</label>
+        <input id="part-brand" type="text" formControlName="brand" maxlength="100" [placeholder]="'maintenance.spare_parts_inventory.enter_brand' | translate"
+          [attr.aria-invalid]="form.controls.brand.touched && form.controls.brand.invalid">
+      </div>
+
+      <div class="form-field">
+        <label for="part-unit">{{ 'maintenance.spare_parts_inventory.unit' | translate }} <span aria-hidden="true">*</span></label>
+        <input id="part-unit" type="text" formControlName="unit" maxlength="30" required [placeholder]="'maintenance.spare_parts_inventory.e_g_piece' | translate"
+          [attr.aria-invalid]="form.controls.unit.touched && form.controls.unit.invalid">
+      </div>
+
+      <div class="form-field">
+        <label for="part-price">{{ 'maintenance.spare_parts_inventory.purchase_price' | translate }} <span aria-hidden="true">*</span></label>
+        <input id="part-price" type="number" formControlName="purchasePrice" min="0" step="0.001" required
+          [placeholder]="'maintenance.spare_parts_inventory.enter_purchase_price' | translate"
+          [attr.aria-invalid]="form.controls.purchasePrice.touched && form.controls.purchasePrice.invalid">
+      </div>
+
+      <div class="form-field">
+        <label for="part-minimum">{{ 'maintenance.spare_parts_inventory.minimum_quantity' | translate }} <span aria-hidden="true">*</span></label>
+        <input id="part-minimum" type="number" formControlName="minimumQuantity" min="0" step="0.001" required
+          [placeholder]="'maintenance.spare_parts_inventory.enter_minimum_quantity' | translate"
+          [attr.aria-invalid]="form.controls.minimumQuantity.touched && form.controls.minimumQuantity.invalid">
+      </div>
+    </div>
+
+    <div class="form-field full-width">
+      <label for="part-description">{{ 'maintenance.spare_parts_inventory.description' | translate }}</label>
+      <textarea id="part-description" formControlName="description" maxlength="500" rows="3"
+        [placeholder]="'maintenance.spare_parts_inventory.enter_part_description' | translate"
+        [attr.aria-invalid]="form.controls.description.touched && form.controls.description.invalid"></textarea>
+    </div>
+
+    @if (isEditMode()) {
+    <div class="inventory-notice">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      <p>{{ 'maintenance.spare_parts_inventory.changing_the_unit_does_not_convert_existing_stock_quantities_or_' | translate }}</p>
+    </div>
+    }
+
+    <div class="dialog-actions">
+      <button type="button" class="cancel-button" (click)="closeDialog()" [disabled]="isSaving()">{{ 'maintenance.spare_parts_inventory.cancel' | translate }}</button>
+      <button type="submit" class="save-button" [disabled]="isSaving()">
+        <i class="pi" [class.pi-spin]="isSaving()" [class.pi-spinner]="isSaving()" [class.pi-check]="!isSaving()"
+          aria-hidden="true"></i>
+        {{ (isSaving() ? 'Saving...' : (isEditMode() ? 'Update Spare Part' : 'Save Spare Part')) | translate }}
+      </button>
+    </div>
+  </form>
+</p-dialog>

@@ -1,0 +1,187 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>{{ 'containers.inland_transport.inland_transport' | translate }}</h1>
+      <p>{{ 'containers.inland_transport.manage_inland_transport_orders' | translate }}</p>
+    </div>
+    <button class="add-button" type="button" (click)="openAdd()" [disabled]="saving()">
+      <i class="pi pi-plus"></i> {{ 'containers.inland_transport.add_transport' | translate }}
+    </button>
+  </div>
+  <div class="summary-cards">
+    <div class="summary-card">
+      <div class="summary-icon blue"><i class="pi pi-list"></i></div>
+      <div>
+        <span>{{ 'containers.inland_transport.total_transports' | translate }}</span>
+        <h2>{{ loading() || failed() ? '—' : records().length }}</h2>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon green"><i class="pi pi-check-circle"></i></div>
+      <div>
+        <span>{{ 'containers.inland_transport.completed' | translate }}</span>
+        <h2>{{ loading() || failed() ? '—' : completedCount() }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="table-container">
+    <div class="table-header">
+      <h2>{{ 'containers.inland_transport.inland_transports' | translate }}</h2>
+      <div class="toolbar">
+        <label class="search-box"
+          ><i class="pi pi-search"></i
+          ><input
+            #searchInput
+            type="search"
+            [attr.aria-label]="'containers.inland_transport.search_inland_transports' | translate"
+            [placeholder]="'containers.inland_transport.search_code_customer_or_location' | translate"
+            [value]="search()"
+            (input)="search.set(searchInput.value)" /></label
+        ><select
+          [attr.aria-label]="'containers.inland_transport.filter_by_status' | translate"
+          [value]="statusFilter()"
+          (change)="statusFilter.set(+$any($event.target).value)"
+        >
+          <option value="0">{{ 'containers.inland_transport.all_statuses' | translate }}</option>
+          @for (item of statuses; track item.value) {
+            <option [value]="item.value">{{ (item.label) | translate }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (loading()) {
+      <div class="state" role="status">{{ 'containers.inland_transport.loading_transports' | translate }}</div>
+    } @else if (failed()) {
+      <div class="state" role="alert">
+        {{ 'containers.inland_transport.could_not_load_transports' | translate }} <button type="button" (click)="load()">{{ 'containers.inland_transport.retry' | translate }}</button>
+      </div>
+    } @else if (!filtered().length) {
+      <div class="state">{{ 'containers.inland_transport.no_inland_transports_found' | translate }}</div>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'containers.inland_transport.trip_code' | translate }}</th>
+              <th>{{ 'containers.inland_transport.customer' | translate }}</th>
+              <th>{{ 'containers.inland_transport.cargo_type' | translate }}</th>
+              <th>{{ 'containers.inland_transport.weight' | translate }}</th>
+              <th>{{ 'containers.inland_transport.loading' | translate }}</th>
+              <th>{{ 'containers.inland_transport.unloading' | translate }}</th>
+              <th>{{ 'containers.inland_transport.status' | translate }}</th>
+              <th>{{ 'containers.inland_transport.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (x of filtered(); track x.id) {
+              <tr>
+                <td>{{ x.tripCode }}</td>
+                <td>{{ x.customerName }}</td>
+                <td>{{ (label(types, x.cargoType)) | translate }}</td>
+                <td>{{ x.weight }}</td>
+                <td>{{ x.loadingLocation }}</td>
+                <td>{{ x.unloadingLocation }}</td>
+                <td>
+                  <span class="badge">{{ (label(statuses, x.tripStatus)) | translate }}</span>
+                </td>
+                <td class="actions">
+                  <button type="button" [title]="'containers.inland_transport.details' | translate" (click)="showDetails(x)">
+                    <i class="pi pi-eye"></i></button
+                  ><button type="button" [title]="'containers.inland_transport.edit' | translate" (click)="openEdit(x)">
+                    <i class="pi pi-pencil"></i></button
+                  ><button type="button" [title]="'containers.inland_transport.delete' | translate" [disabled]="deleting()" (click)="delete(x)">
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+<p-dialog
+  [header]="(editingId() === null ? 'Add Inland Transport' : 'Edit Inland Transport') | translate"
+  [modal]="true"
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [style]="{ width: '650px', maxWidth: '95vw' }"
+  ><form [formGroup]="form" (ngSubmit)="save()">
+    <div class="form-grid">
+      <label
+        >{{ 'containers.inland_transport.customer' | translate }}<select formControlName="customerId">
+          <option [ngValue]="0">{{ 'containers.inland_transport.select_customer' | translate }}</option>
+          @for (c of customers(); track c.id) {
+            <option [ngValue]="c.id">{{ c.customerName }}</option>
+          }
+        </select></label
+      ><label
+        >{{ 'containers.inland_transport.status' | translate }}<select formControlName="tripStatus">
+          @for (item of statuses; track item.value) {
+            <option [ngValue]="item.value">{{ (item.label) | translate }}</option>
+          }
+        </select></label
+      ><label
+        >{{ 'containers.inland_transport.cargo_type' | translate }}<select formControlName="cargoType">
+          @for (item of types; track item.value) {
+            <option [ngValue]="item.value">{{ (item.label) | translate }}</option>
+          }
+        </select></label
+      ><label>{{ 'containers.inland_transport.weight' | translate }}<input type="number" min="0.01" step="0.01" formControlName="weight" /></label
+      ><label>{{ 'containers.inland_transport.loading_location' | translate }}<input formControlName="loadingLocation" maxlength="200" /></label
+      ><label>{{ 'containers.inland_transport.unloading_location' | translate }}<input formControlName="unloadingLocation" maxlength="200" /></label
+      ><label class="wide"
+        >{{ 'containers.inland_transport.notes' | translate }}<textarea formControlName="notes" maxlength="500"></textarea>
+      </label>
+    </div>
+    <div class="dialog-actions">
+      <button
+        type="button"
+        class="cancel-button"
+        (click)="visible.set(false)"
+        [disabled]="saving()"
+      >
+        {{ 'containers.inland_transport.cancel' | translate }}</button
+      ><button class="add-button" type="submit" [disabled]="saving()">
+        {{ (saving() ? 'Saving...' : 'Save') | translate }}
+      </button>
+    </div>
+  </form></p-dialog
+>
+<p-dialog
+  [header]="'containers.inland_transport.transport_details' | translate"
+  [modal]="true"
+  [visible]="details() !== null"
+  (visibleChange)="!$event && details.set(null)"
+  [style]="{ width: '600px', maxWidth: '95vw' }"
+>
+  @if (details(); as x) {
+    <div class="details-grid">
+      <div>
+        <strong>{{ 'containers.inland_transport.trip_code' | translate }}</strong><span>{{ x.tripCode }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.inland_transport.customer' | translate }}</strong><span>{{ x.customerName }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.inland_transport.status' | translate }}</strong><span>{{ (label(statuses, x.tripStatus)) | translate }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.inland_transport.cargo_type' | translate }}</strong><span>{{ (label(types, x.cargoType)) | translate }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.inland_transport.weight' | translate }}</strong><span>{{ x.weight }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.inland_transport.loading' | translate }}</strong><span>{{ x.loadingLocation }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.inland_transport.unloading' | translate }}</strong><span>{{ x.unloadingLocation }}</span>
+      </div>
+      <div>
+        <strong>{{ 'containers.inland_transport.notes' | translate }}</strong><span>{{ x.notes || '—' }}</span>
+      </div>
+    </div>
+  }
+</p-dialog>

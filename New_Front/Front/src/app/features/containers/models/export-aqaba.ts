@@ -1,0 +1,4 @@
+export interface ExportAqabaContainerSave { containerNumber: string; containerSize: number; containerType: number; loadingLocationId: number; routeStatus: number; withdrawalDate: string; loadingDate: string; deliveryLocationId: number; weightInTons: number; notes: string | null; }
+export interface ExportAqabaContainer extends ExportAqabaContainerSave { id: number; bookingId: number; loadingLocationName: string; deliveryLocationName: string; }
+export interface ExportAqabaBookingSave { bookingNumber: string; customerId: number; status: number; containers: ExportAqabaContainerSave[]; }
+export interface ExportAqabaBooking { id: number; bookingNumber: string; customerId: number; customerName: string; customerPhoneNumber: string | null; containerCount: number; status: number; createdAt: string; containers: ExportAqabaContainer[]; }

@@ -1,0 +1,261 @@
+<div class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>{{ 'vehicles.assignments.vehicle_assignment.vehicle_assignments' | translate }}</h1>
+    </div>
+
+    <button class="add-button" (click)="openAddDialog()">
+      <i class="pi pi-plus"></i>
+      {{ 'vehicles.assignments.vehicle_assignment.add_assignment' | translate }}
+    </button>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div class="summary-icon blue">
+        <i class="pi pi-link"></i>
+      </div>
+      <div>
+        <span>{{ 'vehicles.assignments.vehicle_assignment.total_assignments' | translate }}</span>
+        <h2>{{ assignments.length }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon green">
+        <i class="pi pi-check-circle"></i>
+      </div>
+      <div>
+        <span>{{ 'vehicles.assignments.vehicle_assignment.active_assignments' | translate }}</span>
+        <h2>{{ activeAssignmentsCount }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon purple">
+        <i class="pi pi-truck"></i>
+      </div>
+      <div>
+        <span>{{ 'vehicles.assignments.vehicle_assignment.vehicles_assigned' | translate }}</span>
+        <h2>{{ assignments.length }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon orange">
+        <i class="pi pi-history"></i>
+      </div>
+      <div>
+        <span>{{ 'vehicles.assignments.vehicle_assignment.completed_assignments' | translate }}</span>
+        <h2>{{ completedAssignmentsCount }}</h2>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card">
+
+    <!-- Toolbar -->
+    <div class="table-toolbar">
+      <div class="search-box">
+        <i class="pi pi-search"></i>
+        <input type="text" [placeholder]="'vehicles.assignments.vehicle_assignment.search_assignments' | translate" [(ngModel)]="searchText">
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="empty-state" *ngIf="isLoading">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>{{ 'vehicles.assignments.vehicle_assignment.loading_assignments' | translate }}</p>
+    </div>
+
+    <!-- Error -->
+    <div class="empty-state" *ngIf="!isLoading && errorMessage">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ errorMessage | translate }}</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage && assignments.length === 0">
+
+      <i class="pi pi-link"></i>
+      <p>{{ 'vehicles.assignments.vehicle_assignment.no_assignments_found' | translate }}</p>
+    </div>
+
+    <!-- No Search Results -->
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage &&
+      assignments.length > 0 && filteredAssignments.length === 0">
+
+      <i class="pi pi-search"></i>
+      <p>{{ 'vehicles.assignments.vehicle_assignment.no_matching_assignments_found' | translate }}</p>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive" *ngIf="!isLoading && !errorMessage && filteredAssignments.length > 0">
+
+      <table class="vehicles-table">
+
+        <thead>
+          <tr>
+            <th>{{ 'vehicles.assignments.vehicle_assignment.assignment_id' | translate }}</th>
+            <th>{{ 'vehicles.assignments.vehicle_assignment.vehicle_plate' | translate }}</th>
+            <th>{{ 'vehicles.assignments.vehicle_assignment.trailer_plate' | translate }}</th>
+            <th>{{ 'vehicles.assignments.vehicle_assignment.start_date' | translate }}</th>
+            <th>{{ 'vehicles.assignments.vehicle_assignment.end_date' | translate }}</th>
+            <th>{{ 'vehicles.assignments.vehicle_assignment.status' | translate }}</th>
+            <th>{{ 'vehicles.assignments.vehicle_assignment.actions' | translate }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let assignment of filteredAssignments">
+
+            <td>#{{ assignment.assignmentId }}</td>
+
+            <td>{{ getVehiclePlate(assignment.vehicleId) }}</td>
+
+            <td>{{ getTrailerPlate(assignment.trailerId) }}</td>
+
+            <td>
+              {{ assignment.startDate | date:'dd/MM/yyyy' }}
+            </td>
+
+            <td>
+              {{ (assignment.endDate
+              ? (assignment.endDate | date:'dd/MM/yyyy')
+              : '-') | translate }}
+            </td>
+
+            <td>
+              <span class="status-badge" [ngClass]="assignment.endDate ? 'completed' : 'active'">
+
+                {{ (assignment.endDate ? 'Completed' : 'Active') | translate }}
+
+              </span>
+            </td>
+
+            <td>
+              <div class="action-buttons">
+
+                <button class="icon-button edit" [title]="'vehicles.assignments.vehicle_assignment.edit' | translate" (click)="openEditDialog(assignment)">
+
+                  <i class="pi pi-pencil"></i>
+                </button>
+
+                <button class="icon-button delete" [title]="'vehicles.assignments.vehicle_assignment.delete' | translate" (click)="confirmDelete(assignment.assignmentId)">
+
+                  <i class="pi pi-trash"></i>
+                </button>
+
+              </div>
+            </td>
+
+          </tr>
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+  <!-- Add / Edit Dialog -->
+  <p-dialog [(visible)]="displayAssignmentDialog" [modal]="true" [draggable]="false" [resizable]="false"
+    [style]="{ width: '550px' }" [header]="(isEditMode ? 'Edit Assignment' : 'Add New Assignment') | translate">
+
+    <div class="vehicle-form">
+
+      <p class="dialog-description">
+        {{ (isEditMode
+        ? 'Update vehicle assignment information.'
+        : 'Enter the assignment information below.') | translate }}
+      </p>
+
+      <div class="form-grid">
+
+        <!-- Vehicle -->
+        <div class="form-field full-width">
+          <label>{{ 'vehicles.assignments.vehicle_assignment.vehicle' | translate }}</label>
+
+          <select [(ngModel)]="newAssignment.vehicleId" name="vehicleId" required>
+
+            <option [ngValue]="0" disabled>{{ 'vehicles.assignments.vehicle_assignment.select_vehicle' | translate }}</option>
+
+            <option *ngFor="let vehicle of vehicles" [ngValue]="vehicle.vehicleId">
+
+              {{ vehicle.plateNumber }}
+
+            </option>
+
+          </select>
+        </div>
+
+        <!-- Trailer -->
+        <div class="form-field full-width">
+          <label>{{ 'vehicles.assignments.vehicle_assignment.trailer' | translate }}</label>
+
+          <select [(ngModel)]="newAssignment.trailerId" name="trailerId" required>
+
+            <option [ngValue]="0" disabled>{{ 'vehicles.assignments.vehicle_assignment.select_trailer' | translate }}</option>
+
+            <option *ngFor="let trailer of trailers" [ngValue]="trailer.id">
+
+              {{ trailer.plateNumber }}
+
+            </option>
+
+          </select>
+        </div>
+
+        <!-- Start Date -->
+        <div class="form-field">
+          <label>{{ 'vehicles.assignments.vehicle_assignment.start_date' | translate }}</label>
+
+          <input type="date" [(ngModel)]="newAssignment.startDate" name="startDate">
+        </div>
+
+        <!-- End Date -->
+        <div class="form-field">
+          <label>{{ 'vehicles.assignments.vehicle_assignment.end_date' | translate }}</label>
+
+          <input type="date" [(ngModel)]="newAssignment.endDate" name="endDate">
+        </div>
+
+      </div>
+
+      <!-- Error Message -->
+      <div class="form-error" *ngIf="errorMessage">
+        {{ errorMessage | translate }}
+      </div>
+
+      <!-- Dialog Actions -->
+      <div class="dialog-actions">
+
+        <button class="cancel-button" type="button" (click)="closeDialog()" [disabled]="isSaving">
+
+          {{ 'vehicles.assignments.vehicle_assignment.cancel' | translate }}
+        </button>
+
+        <button class="save-button" type="button" (click)="saveAssignment()" [disabled]="isSaving">
+
+          <i class="pi" [ngClass]="isSaving ? 'pi-spin pi-spinner' : 'pi-check'">
+          </i>
+
+          {{ (isSaving
+          ? 'Saving...'
+          : (isEditMode ? 'Update Assignment' : 'Save Assignment')) | translate }}
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </p-dialog>
+
+</div>
