@@ -18,18 +18,21 @@ public class AuthController : ControllerBase
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly JwtTokenService _jwtTokenService;
     private readonly RefreshTokenService _refreshTokenService;
+    private readonly IPermissionService _permissionService;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         JwtTokenService jwtTokenService,
-        RefreshTokenService refreshTokenService
+        RefreshTokenService refreshTokenService,
+        IPermissionService permissionService
     )
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtTokenService = jwtTokenService;
         _refreshTokenService = refreshTokenService;
+        _permissionService = permissionService;
     }
 
     [HttpPost("login")]
@@ -123,6 +126,31 @@ public class AuthController : ControllerBase
         );
 
         return Ok(response);
+    }
+
+    [HttpGet("permissions")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public async Task<ActionResult<CurrentUserPermissionsDto>> GetCurrentUserPermissions(
+        CancellationToken cancellationToken
+    )
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value
+            ?? User.FindFirst("sub")?.Value;
+        var tokenSecurityStamp = User.FindFirst("security_stamp")?.Value;
+
+        if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(tokenSecurityStamp))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _permissionService.GetCurrentUserPermissionsAsync(
+            userId,
+            tokenSecurityStamp,
+            cancellationToken
+        );
+
+        return result is null ? Unauthorized() : Ok(result);
     }
 
     private static CookieOptions CreateRefreshTokenCookieOptions(DateTime expiresAtUtc)

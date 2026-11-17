@@ -14,12 +14,15 @@
     <div class="menu-label">{{ 'layout.components.sidebar.main' | translate }}</div>
 
     <!-- Dashboard -->
-    <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-      <i class="pi pi-home"></i>
-      <span>{{ 'layout.components.sidebar.dashboard' | translate }}</span>
-    </a>
+    @if (permissions.has('Dashboard.View')) {
+      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <i class="pi pi-home"></i>
+        <span>{{ 'layout.components.sidebar.dashboard' | translate }}</span>
+      </a>
+    }
 
     <!-- Vehicles -->
+    @if (permissions.hasAny(['Vehicles.View', 'ExternalVehicles.View', 'Trailers.View', 'VehicleAssignments.View'])) {
     <details class="menu-group" [open]="openMenu === 'vehicles'">
 
       <summary (click)="toggleMenu('vehicles'); $event.preventDefault()">
@@ -30,36 +33,38 @@
 
       <div class="submenu">
 
-        <a routerLink="/vehicles/company" routerLinkActive="active">
+        @if (permissions.has('Vehicles.View')) { <a routerLink="/vehicles/company" routerLinkActive="active">
           <i class="pi pi-building"></i>
           <span>{{ 'layout.components.sidebar.company_vehicles' | translate }}</span>
-        </a>
+        </a> }
 
-        <a routerLink="/vehicles/external" routerLinkActive="active">
+        @if (permissions.has('ExternalVehicles.View')) { <a routerLink="/vehicles/external" routerLinkActive="active">
           <i class="pi pi-car"></i>
           <span>{{ 'layout.components.sidebar.external_vehicles' | translate }}</span>
-        </a>
+        </a> }
 
-        <a routerLink="/vehicles/trailers" routerLinkActive="active">
+        @if (permissions.has('Trailers.View')) { <a routerLink="/vehicles/trailers" routerLinkActive="active">
           <i class="pi pi-truck"></i>
           <span>{{ 'layout.components.sidebar.trailers' | translate }}</span>
-        </a>
+        </a> }
 
-        <a routerLink="/vehicles/assignments" routerLinkActive="active">
+        @if (permissions.has('VehicleAssignments.View')) { <a routerLink="/vehicles/assignments" routerLinkActive="active">
           <i class="pi pi-link"></i>
           <span>{{ 'layout.components.sidebar.assignments' | translate }}</span>
-        </a>
+        </a> }
 
       </div>
     </details>
+    }
 
     <!-- Drivers -->
-    <a routerLink="/drivers" routerLinkActive="active">
+    @if (permissions.has('Drivers.View')) { <a routerLink="/drivers" routerLinkActive="active">
       <i class="pi pi-users"></i>
       <span>{{ 'layout.components.sidebar.drivers' | translate }}</span>
-    </a>
+    </a> }
 
     <!-- Fuel -->
+    @if (permissions.hasAny(['FuelRecords.View', 'FuelReports.View']) || permissions.hasAll(['FuelPurchases.View', 'FuelTransfers.View'])) {
     <details class="menu-group" [open]="openMenu === 'fuel'">
 
       <summary (click)="toggleMenu('fuel'); $event.preventDefault()">
@@ -70,25 +75,27 @@
 
       <div class="submenu">
 
-        <a routerLink="/fuel/records" routerLinkActive="active">
+        @if (permissions.has('FuelRecords.View')) { <a routerLink="/fuel/records" routerLinkActive="active">
           <i class="pi pi-file"></i>
           <span>{{ 'layout.components.sidebar.fueling_records' | translate }}</span>
-        </a>
+        </a> }
 
-        <a routerLink="/fuel/inventory" routerLinkActive="active">
+        @if (permissions.hasAll(['FuelPurchases.View', 'FuelTransfers.View'])) { <a routerLink="/fuel/inventory" routerLinkActive="active">
           <i class="pi pi-database"></i>
           <span>{{ 'layout.components.sidebar.fuel_inventory' | translate }}</span>
-        </a>
+        </a> }
 
-        <a routerLink="/fuel/reports" routerLinkActive="active">
+        @if (permissions.has('FuelReports.View')) { <a routerLink="/fuel/reports" routerLinkActive="active">
           <i class="pi pi-chart-bar"></i>
           <span>{{ 'fuel.ui.001' | translate }}</span>
-        </a>
+        </a> }
 
       </div>
     </details>
+    }
 
     <!-- Maintenance & Inventory -->
+    @if (permissions.hasAny(['Maintenance.View', 'Oils.View', 'SpareParts.View', 'SparePartMovements.View', 'OilMovements.View'])) {
     <details class="menu-group" [open]="openMenu === 'maintenance'">
 
       <summary (click)="toggleMenu('maintenance'); $event.preventDefault()">
@@ -100,24 +107,25 @@
       <div class="submenu">
 
         <!-- Maintenance Records -->
-        <a routerLink="/maintenance/records" routerLinkActive="active">
+        @if (permissions.has('Maintenance.View')) { <a routerLink="/maintenance/records" routerLinkActive="active">
           <i class="pi pi-file-edit"></i>
           <span>{{ 'layout.components.sidebar.maintenance_records' | translate }}</span>
-        </a>
+        </a> }
 
         <!-- Oil Inventory -->
-        <a routerLink="/maintenance/oils" routerLinkActive="active">
+        @if (permissions.has('Oils.View')) { <a routerLink="/maintenance/oils" routerLinkActive="active">
           <i class="pi pi-filter"></i>
           <span>{{ 'layout.components.sidebar.oil_inventory' | translate }}</span>
-        </a>
+        </a> }
 
         <!-- Spare Parts Inventory -->
-        <a routerLink="/maintenance/spare-parts" routerLinkActive="active">
+        @if (permissions.has('SpareParts.View')) { <a routerLink="/maintenance/spare-parts" routerLinkActive="active">
           <i class="pi pi-cog"></i>
           <span>{{ 'layout.components.sidebar.spare_parts_inventory' | translate }}</span>
-        </a>
+        </a> }
 
         <!-- Inventory Movements -->
+        @if (permissions.hasAny(['OilMovements.View', 'SparePartMovements.View'])) {
         <details class="submenu-group" [open]="openSubMenu === 'movements'">
 
           <summary (click)="toggleSubMenu('movements'); $event.preventDefault()">
@@ -128,29 +136,32 @@
 
           <div class="submenu">
 
-            <a routerLink="/maintenance/movements/oils" routerLinkActive="active">
+            @if (permissions.has('OilMovements.View')) { <a routerLink="/maintenance/movements/oils" routerLinkActive="active">
               <i class="pi pi-filter"></i>
               <span>{{ 'layout.components.sidebar.oil_movements' | translate }}</span>
-            </a>
+            </a> }
 
-            <a routerLink="/maintenance/movements/spare-parts" routerLinkActive="active">
+            @if (permissions.has('SparePartMovements.View')) { <a routerLink="/maintenance/movements/spare-parts" routerLinkActive="active">
               <i class="pi pi-cog"></i>
               <span>{{ 'layout.components.sidebar.spare_parts_movements' | translate }}</span>
-            </a>
+            </a> }
 
           </div>
         </details>
+        }
 
       </div>
     </details>
+    }
 
     <!-- Trips -->
-    <a routerLink="/trips" routerLinkActive="active">
+    @if (permissions.has('Trips.View')) { <a routerLink="/trips" routerLinkActive="active">
       <i class="pi pi-map"></i>
       <span>{{ 'layout.components.sidebar.trips' | translate }}</span>
-    </a>
+    </a> }
 
     <!-- Containers -->
+    @if (permissions.hasAny(['InternationalIncoming.View', 'InternationalExports.View', 'InlandTransport.View']) || permissions.hasAll(['IncomingAqabaBills.View', 'IncomingAqabaContainers.View']) || permissions.hasAll(['ExportAqabaBookings.View', 'ExportAqabaContainers.View'])) {
     <details class="menu-group" [open]="openMenu === 'containers'">
 
       <summary (click)="toggleMenu('containers'); $event.preventDefault()">
@@ -161,20 +172,32 @@
 
       <div class="submenu">
 
+        @if (permissions.has('InternationalIncoming.View') || permissions.hasAll(['IncomingAqabaBills.View', 'IncomingAqabaContainers.View'])) {
         <details class="submenu-group" [open]="openSubMenu === 'container-import'">
           <summary (click)="toggleSubMenu('container-import'); $event.preventDefault()"><i class="pi pi-download"></i><span>{{ 'layout.components.sidebar.import' | translate }}</span><i class="pi pi-chevron-down arrow"></i></summary>
-          <div class="submenu"><a routerLink="/containers/import/aqaba" routerLinkActive="active"><i class="pi pi-box"></i><span>{{ 'layout.components.sidebar.aqaba_import' | translate }}</span></a><a routerLink="/containers/import/external" routerLinkActive="active"><i class="pi pi-globe"></i><span>{{ 'layout.components.sidebar.international_import' | translate }}</span></a></div>
+          <div class="submenu">
+            @if (permissions.hasAll(['IncomingAqabaBills.View', 'IncomingAqabaContainers.View'])) { <a routerLink="/containers/import/aqaba" routerLinkActive="active"><i class="pi pi-box"></i><span>{{ 'layout.components.sidebar.aqaba_import' | translate }}</span></a> }
+            @if (permissions.has('InternationalIncoming.View')) { <a routerLink="/containers/import/external" routerLinkActive="active"><i class="pi pi-globe"></i><span>{{ 'layout.components.sidebar.international_import' | translate }}</span></a> }
+          </div>
         </details>
+        }
+        @if (permissions.has('InternationalExports.View') || permissions.hasAll(['ExportAqabaBookings.View', 'ExportAqabaContainers.View'])) {
         <details class="submenu-group" [open]="openSubMenu === 'container-export'">
           <summary (click)="toggleSubMenu('container-export'); $event.preventDefault()"><i class="pi pi-upload"></i><span>{{ 'layout.components.sidebar.export' | translate }}</span><i class="pi pi-chevron-down arrow"></i></summary>
-          <div class="submenu"><a routerLink="/containers/export/aqaba" routerLinkActive="active"><i class="pi pi-box"></i><span>{{ 'layout.components.sidebar.aqaba_export' | translate }}</span></a><a routerLink="/containers/export/external" routerLinkActive="active"><i class="pi pi-globe"></i><span>{{ 'layout.components.sidebar.international_export' | translate }}</span></a></div>
+          <div class="submenu">
+            @if (permissions.hasAll(['ExportAqabaBookings.View', 'ExportAqabaContainers.View'])) { <a routerLink="/containers/export/aqaba" routerLinkActive="active"><i class="pi pi-box"></i><span>{{ 'layout.components.sidebar.aqaba_export' | translate }}</span></a> }
+            @if (permissions.has('InternationalExports.View')) { <a routerLink="/containers/export/external" routerLinkActive="active"><i class="pi pi-globe"></i><span>{{ 'layout.components.sidebar.international_export' | translate }}</span></a> }
+          </div>
         </details>
-        <a routerLink="/containers/internal" routerLinkActive="active"><i class="pi pi-arrows-h"></i><span>{{ 'layout.components.sidebar.inland_transport' | translate }}</span></a>
+        }
+        @if (permissions.has('InlandTransport.View')) { <a routerLink="/containers/internal" routerLinkActive="active"><i class="pi pi-arrows-h"></i><span>{{ 'layout.components.sidebar.inland_transport' | translate }}</span></a> }
 
       </div>
     </details>
+    }
 
     <!-- Customers -->
+    @if (permissions.hasAny(['Customers.View', 'ShippingLines.View', 'DeliveryLocations.View'])) {
     <details class="menu-group" [open]="openMenu === 'customers'">
       <summary (click)="toggleMenu('customers'); $event.preventDefault()">
         <i class="pi pi-address-book"></i>
@@ -182,17 +205,36 @@
         <i class="pi pi-chevron-down arrow"></i>
       </summary>
       <div class="submenu">
-        <a routerLink="/customers" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        @if (permissions.has('Customers.View')) { <a routerLink="/customers" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <i class="pi pi-users"></i><span>{{ 'layout.components.sidebar.customers' | translate }}</span>
-        </a>
-        <a routerLink="/customers/shipping-lines" routerLinkActive="active">
+        </a> }
+        @if (permissions.has('ShippingLines.View')) { <a routerLink="/customers/shipping-lines" routerLinkActive="active">
           <i class="pi pi-send"></i><span>{{ 'layout.components.sidebar.shipping_lines' | translate }}</span>
-        </a>
-        <a routerLink="/customers/delivery-locations" routerLinkActive="active">
+        </a> }
+        @if (permissions.has('DeliveryLocations.View')) { <a routerLink="/customers/delivery-locations" routerLinkActive="active">
           <i class="pi pi-map-marker"></i><span>{{ 'layout.components.sidebar.delivery_locations' | translate }}</span>
-        </a>
+        </a> }
       </div>
     </details>
+    }
+
+    @if (permissions.hasAny(['Users.View', 'Roles.Manage', 'Permissions.Manage'])) {
+      <div class="menu-label">{{ 'admin.navigation.title' | translate }}</div>
+      <details class="menu-group" [open]="openMenu === 'administration'">
+        <summary (click)="toggleMenu('administration'); $event.preventDefault()">
+          <i class="pi pi-shield"></i>
+          <span>{{ 'admin.navigation.title' | translate }}</span>
+          <i class="pi pi-chevron-down arrow"></i>
+        </summary>
+        <div class="submenu">
+          @if (permissions.has('Users.View')) { <a routerLink="/admin/users" routerLinkActive="active"><i class="pi pi-users"></i><span>{{ 'admin.navigation.users' | translate }}</span></a> }
+          @if (permissions.has('Roles.Manage')) { <a routerLink="/admin/roles" routerLinkActive="active"><i class="pi pi-id-card"></i><span>{{ 'admin.navigation.roles' | translate }}</span></a> }
+          @if (permissions.has('Permissions.Manage')) {
+            <a routerLink="/admin/permissions" routerLinkActive="active"><i class="pi pi-key"></i><span>{{ 'admin.navigation.permissions' | translate }}</span></a>
+          }
+        </div>
+      </details>
+    }
 
   </nav>
 

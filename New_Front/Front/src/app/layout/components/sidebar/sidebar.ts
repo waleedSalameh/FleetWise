@@ -1,6 +1,7 @@
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { PermissionService } from '../../../features/auth/services/permission.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -10,6 +11,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './sidebar.scss'
 })
 export class Sidebar {
+  readonly permissions = inject(PermissionService);
 
   // القوائم الرئيسية
   openMenu: string | null = null;

@@ -1,0 +1,48 @@
+<main class="admin-page">
+  <header class="admin-header">
+    <div class="page-heading">
+      <span class="heading-icon users-icon"><i class="pi pi-users"></i></span>
+      <div><span class="eyebrow">{{ 'admin.navigation.title' | translate }}</span><h1>{{ 'admin.users.title' | translate }}</h1><p>{{ 'admin.users.subtitle' | translate }}</p></div>
+    </div>
+    @if (permissions.has('Users.Create')) { <button class="primary" (click)="openCreateDialog()"><i class="pi pi-plus"></i>{{ 'admin.users.createUser' | translate }}</button> }
+  </header>
+  <section class="panel">
+    <div class="panel-toolbar">
+      <label class="search-field"><i class="pi pi-search"></i><input [(ngModel)]="search" (ngModelChange)="filter()" [placeholder]="'admin.users.searchEmail' | translate"></label>
+      <span class="result-count"><i class="pi pi-users"></i>{{ filtered.length }}</span>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>{{ 'admin.users.email' | translate }}</th><th>{{ 'admin.users.status' | translate }}</th><th>{{ 'admin.common.actions' | translate }}</th></tr></thead><tbody>
+      @if (isLoading) { <tr><td colspan="3"><div class="empty-state"><span><i class="pi pi-spin pi-spinner"></i></span><strong>{{ 'admin.common.loading' | translate }}</strong></div></td></tr> }
+      @else { @for (user of filtered; track user.id) { <tr><td><span class="user-email"><span class="table-avatar"><i class="pi pi-user"></i></span>{{ user.email }}</span></td><td><span class="status-chip" [class.is-active]="user.isActive"><span></span>{{ (user.isActive ? 'admin.users.active' : 'admin.users.inactive') | translate }}</span></td><td><div class="actions">
+        @if (permissions.has('Roles.Manage')) { <button class="table-action" (click)="choose(user)"><i class="pi pi-id-card"></i>{{ 'admin.users.roles' | translate }}</button> }
+        @if (permissions.has('Users.Update')) { <button class="table-action" (click)="choose(user); showPassword = true"><i class="pi pi-key"></i>{{ 'admin.users.resetPassword' | translate }}</button> }
+        @if (user.isActive && permissions.has('Users.Disable') || !user.isActive && permissions.has('Users.Update')) { <button class="table-action" [class.danger]="user.isActive" (click)="toggleActive(user)"><i [class]="user.isActive ? 'pi pi-user-minus' : 'pi pi-user-plus'"></i>{{ (user.isActive ? 'admin.users.disable' : 'admin.users.activate') | translate }}</button> }
+      </div></td></tr> } @empty { <tr><td colspan="3"><div class="empty-state"><span><i class="pi pi-users"></i></span><strong>{{ 'admin.users.noUsers' | translate }}</strong></div></td></tr> } }
+    </tbody></table></div>
+    <footer class="pager"><span>{{ 'admin.common.page' | translate }} {{ pageNumber }}</span><div><button [disabled]="pageNumber === 1" (click)="previousPage()"><i class="pi pi-chevron-left"></i>{{ 'admin.common.previous' | translate }}</button><button [disabled]="!hasNextPage" (click)="nextPage()">{{ 'admin.common.next' | translate }}<i class="pi pi-chevron-right"></i></button></div></footer>
+  </section>
+  @if (showCreate) {
+    <div class="backdrop" (click)="closeCreateDialog()">
+      <section class="dialog create-user-dialog" role="dialog" aria-modal="true" aria-labelledby="create-user-title" (click)="$event.stopPropagation()">
+        <button type="button" class="dialog-close" [attr.aria-label]="'admin.common.close' | translate" [title]="'admin.common.close' | translate" [disabled]="busy" (click)="closeCreateDialog()"><i class="pi pi-times"></i></button>
+        <div class="dialog-heading">
+          <span class="heading-icon users-icon"><i class="pi pi-user-plus"></i></span>
+          <div><span class="eyebrow">{{ 'admin.navigation.title' | translate }}</span><h2 id="create-user-title">{{ 'admin.users.createTitle' | translate }}</h2><p>{{ 'admin.users.createDialogHint' | translate }}</p></div>
+        </div>
+        <form class="create-user-form" novalidate (ngSubmit)="create()">
+          <label class="create-field" for="new-user-email"><span>{{ 'admin.users.email' | translate }}<b>*</b></span>
+            <div class="input-with-icon" [class.is-invalid]="email.length > 0 && !isEmailValid"><i class="pi pi-envelope"></i><input id="new-user-email" name="email" type="email" autocomplete="email" required [(ngModel)]="email" [placeholder]="'admin.users.emailPlaceholder' | translate"></div>
+            <small [class.field-error]="email.length > 0 && !isEmailValid">{{ email.length > 0 && !isEmailValid ? ('admin.users.emailInvalid' | translate) : ('admin.users.emailHint' | translate) }}</small>
+          </label>
+          <label class="create-field" for="new-user-password"><span>{{ 'admin.users.temporaryPassword' | translate }}<b>*</b></span>
+            <div class="input-with-icon password-field" [class.is-ready]="password.length >= 12"><i class="pi pi-lock"></i><input id="new-user-password" name="temporaryPassword" [type]="showTemporaryPassword ? 'text' : 'password'" autocomplete="new-password" required [(ngModel)]="password" [placeholder]="'admin.users.temporaryPasswordPlaceholder' | translate"><button type="button" class="password-toggle" [attr.aria-label]="(showTemporaryPassword ? 'admin.users.hidePassword' : 'admin.users.showPassword') | translate" [title]="(showTemporaryPassword ? 'admin.users.hidePassword' : 'admin.users.showPassword') | translate" (click)="showTemporaryPassword = !showTemporaryPassword"><i [class]="showTemporaryPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i></button></div>
+            <small class="password-hint" [class.password-ready]="password.length >= 12"><i [class]="password.length >= 12 ? 'pi pi-check-circle' : 'pi pi-info-circle'"></i>{{ 'admin.users.passwordHint' | translate }} <span>{{ password.length }}/12</span></small>
+          </label>
+          <footer class="create-dialog-actions"><button type="button" class="secondary" [disabled]="busy" (click)="closeCreateDialog()">{{ 'admin.common.cancel' | translate }}</button><button type="submit" class="primary" [disabled]="busy || !isEmailValid || password.length < 12"><i [class]="busy ? 'pi pi-spin pi-spinner' : 'pi pi-user-plus'"></i>{{ (busy ? 'admin.users.creating' : 'admin.users.createUser') | translate }}</button></footer>
+        </form>
+      </section>
+    </div>
+  }
+  @if (selected && !showPassword && permissions.has('Roles.Manage')) { <div class="backdrop"><section class="dialog"><div class="dialog-heading"><span class="heading-icon roles-icon"><i class="pi pi-id-card"></i></span><div><h2>{{ 'admin.users.rolesFor' | translate:{email: selected.email ?? ''} }}</h2><p>{{ 'admin.roles.subtitle' | translate }}</p></div></div><div class="role-options">@for (role of assignableRoles; track role.id) { <label class="role-option"><input type="checkbox" [checked]="assignedRoleIds.has(role.id)" (change)="changeRole(role.id, $any($event.target).checked)"><span><i class="pi pi-shield"></i>{{ role.name }}</span></label> }</div><footer><button (click)="selected = null">{{ 'admin.common.close' | translate }}</button><button class="primary" (click)="saveRoles()"><i class="pi pi-check"></i>{{ 'admin.users.saveRoles' | translate }}</button></footer></section></div> }
+  @if (selected && showPassword) { <div class="backdrop"><section class="dialog"><div class="dialog-heading"><span class="heading-icon permissions-icon"><i class="pi pi-key"></i></span><div><h2>{{ 'admin.users.resetPassword' | translate }}</h2><p>{{ selected.email }}</p></div></div><label>{{ 'admin.users.newPassword' | translate }}<input type="password" [(ngModel)]="newPassword"></label><footer><button (click)="showPassword = false; selected = null">{{ 'admin.common.cancel' | translate }}</button><button class="primary" [disabled]="newPassword.length < 12" (click)="resetPassword()"><i class="pi pi-check"></i>{{ 'admin.common.reset' | translate }}</button></footer></section></div> }
+</main>

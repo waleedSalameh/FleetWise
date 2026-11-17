@@ -1,4 +1,26 @@
 <header class="topbar">
+  @if (currentUser(); as user) {
+    <div class="account-actions">
+      <div class="user-profile">
+        <span class="user-avatar" aria-hidden="true"><i class="pi pi-user"></i></span>
+        <span class="user-info">
+          <span class="user-name">{{ user.email || ('layout.components.topbar.account' | translate) }}</span>
+          <span class="user-role">{{ roleLabel() || ('layout.components.topbar.signed_in' | translate) }}</span>
+        </span>
+      </div>
+      <button
+        class="logout-button"
+        type="button"
+        (click)="logout()"
+        [disabled]="isLoggingOut()"
+        [attr.aria-label]="'layout.components.topbar.logout' | translate"
+      >
+        <i class="pi" [class.pi-sign-out]="!isLoggingOut()" [class.pi-spin]="isLoggingOut()" [class.pi-spinner]="isLoggingOut()" aria-hidden="true"></i>
+        <span>{{ (isLoggingOut() ? 'layout.components.topbar.logging_out' : 'layout.components.topbar.logout') | translate }}</span>
+      </button>
+    </div>
+  }
+
   <label class="language-switcher"
     ><i class="pi pi-globe" aria-hidden="true"></i
     ><span>{{ (language.language() === 'ar' ? 'اللغة' : 'Language') | translate }}</span

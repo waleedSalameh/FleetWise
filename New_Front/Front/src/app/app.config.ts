@@ -6,14 +6,20 @@ import Aura from '@primeuix/themes/aura';
 import { MessageService } from 'primeng/api';
 
 import { routes } from './app.routes';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { LanguageService } from './shared/i18n/language.service';
+import { AuthService } from './features/auth/services/auth.service';
+import { authInterceptor } from './features/auth/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(),
-    provideAppInitializer(() => inject(LanguageService).initialize()),
+    provideHttpClient(withInterceptors([authInterceptor])),
+    provideAppInitializer(() => {
+      const language = inject(LanguageService);
+      const auth = inject(AuthService);
+      return Promise.all([language.initialize(), auth.restoreSession()]);
+    }),
     MessageService,
 
     provideAnimationsAsync(),

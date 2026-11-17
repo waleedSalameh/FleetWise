@@ -8,4 +8,10 @@ public interface IPermissionService
         string tokenSecurityStamp,
         CancellationToken cancellationToken = default
     );
+
+    Task<FleetWise.BLL.DTOs.Identity.CurrentUserPermissionsDto?> GetCurrentUserPermissionsAsync(
+        string userId,
+        string tokenSecurityStamp,
+        CancellationToken cancellationToken = default
+    );
 }
