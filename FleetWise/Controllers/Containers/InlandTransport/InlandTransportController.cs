@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Containers.InlandTransport;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Containers.InlandTransport;
 using FleetWise.BLL.Interface.Containers.InlandTransport;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +16,7 @@ namespace FleetWise.API.Controllers.Containers
             _service = service;
         }
 
+        [Authorize(Policy = "Permission:InlandTransport.View")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -22,6 +24,7 @@ namespace FleetWise.API.Controllers.Containers
             return Ok(result);
         }
 
+        [Authorize(Policy = "Permission:InlandTransport.View")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -33,6 +36,7 @@ namespace FleetWise.API.Controllers.Containers
             return Ok(result);
         }
 
+        [Authorize(Policy = "Permission:InlandTransport.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateInlandTransportDto dto)
         {
@@ -40,6 +44,7 @@ namespace FleetWise.API.Controllers.Containers
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
+        [Authorize(Policy = "Permission:InlandTransport.Update")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UpdateInlandTransportDto dto)
         {
@@ -47,6 +52,7 @@ namespace FleetWise.API.Controllers.Containers
             return NoContent();
         }
 
+        [Authorize(Policy = "Permission:InlandTransport.Delete")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Containers.DeliveryLocations;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Containers.DeliveryLocations;
 using FleetWise.BLL.Interface;
 using FleetWise.BLL.Interface.Containers;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ namespace FleetWise.API.Controllers.Containers
         }
 
         // GET: api/DeliveryLocation
+        [Authorize(Policy = "Permission:DeliveryLocations.View")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -25,6 +27,7 @@ namespace FleetWise.API.Controllers.Containers
         }
 
         // POST: api/DeliveryLocation
+        [Authorize(Policy = "Permission:DeliveryLocations.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateDeliveryLocationDto dto)
         {
@@ -32,6 +35,7 @@ namespace FleetWise.API.Controllers.Containers
             return Ok(result);
         }
 
+        [Authorize(Policy = "Permission:DeliveryLocations.Update")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, UpdateDeliveryLocationDto dto)
         {
@@ -45,6 +49,7 @@ namespace FleetWise.API.Controllers.Containers
             }
         }
 
+        [Authorize(Policy = "Permission:DeliveryLocations.Delete")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

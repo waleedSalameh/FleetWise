@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Drivers;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Drivers;
 using FleetWise.BLL.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ namespace FleetWise.API.Controllers
         }
 
        
+        [Authorize(Policy = "Permission:Drivers.View")]
         [HttpGet]
         public async Task<ActionResult<List<DriverDto>>> GetAll()
         {
@@ -34,6 +36,7 @@ namespace FleetWise.API.Controllers
         }
 
        
+        [Authorize(Policy = "Permission:Drivers.View")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<DriverDto>> GetById(int id)
         {
@@ -58,6 +61,7 @@ namespace FleetWise.API.Controllers
         }
 
        
+        [Authorize(Policy = "Permission:Drivers.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateDriverDto dto)
         {
@@ -78,6 +82,7 @@ namespace FleetWise.API.Controllers
         }
 
       
+        [Authorize(Policy = "Permission:Drivers.Update")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(
             int id,
@@ -103,6 +108,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:Drivers.Delete")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Maintenance.SpareParts;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Maintenance.SpareParts;
 using FleetWise.BLL.Interface;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +17,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // GET: api/SpareParts
+        [Authorize(Policy = "Permission:SpareParts.View")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -31,6 +33,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // GET: api/SpareParts/5
+        [Authorize(Policy = "Permission:SpareParts.View")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -50,6 +53,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // POST: api/SpareParts
+        [Authorize(Policy = "Permission:SpareParts.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateSparePartDto dto)
         {
@@ -70,6 +74,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // PUT: api/SpareParts/5
+        [Authorize(Policy = "Permission:SpareParts.Update")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UpdateSparePartDto dto)
         {
@@ -89,6 +94,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // DELETE: api/SpareParts/5
+        [Authorize(Policy = "Permission:SpareParts.Delete")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

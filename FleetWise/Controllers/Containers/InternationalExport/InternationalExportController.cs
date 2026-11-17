@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Containers.InternationalExport;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Containers.InternationalExport;
 using FleetWise.BLL.Interface.Containers.IInternationalExport;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +16,7 @@ namespace FleetWise.API.Controllers.InternationalExport
             _service = service;
         }
 
+        [Authorize(Policy = "Permission:InternationalExports.View")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -22,6 +24,7 @@ namespace FleetWise.API.Controllers.InternationalExport
             return Ok(exports);
         }
 
+        [Authorize(Policy = "Permission:InternationalExports.View")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -33,6 +36,7 @@ namespace FleetWise.API.Controllers.InternationalExport
             return Ok(export);
         }
 
+        [Authorize(Policy = "Permission:InternationalExports.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateInternationalExportDto dto)
         {
@@ -40,6 +44,7 @@ namespace FleetWise.API.Controllers.InternationalExport
             return CreatedAtAction(nameof(GetById), new { id = export.Id }, export);
         }
 
+        [Authorize(Policy = "Permission:InternationalExports.Update")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UpdateInternationalExportDto dto)
         {
@@ -51,6 +56,7 @@ namespace FleetWise.API.Controllers.InternationalExport
             return NoContent();
         }
 
+        [Authorize(Policy = "Permission:InternationalExports.Delete")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

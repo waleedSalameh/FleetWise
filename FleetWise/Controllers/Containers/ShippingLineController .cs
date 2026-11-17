@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Containers.ShippingLines;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Containers.ShippingLines;
 using FleetWise.BLL.Interface;
 using FleetWise.BLL.Interface.Containers;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ namespace FleetWise.API.Controllers
         }
 
         // GET: api/ShippingLine
+        [Authorize(Policy = "Permission:ShippingLines.View")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -25,6 +27,7 @@ namespace FleetWise.API.Controllers
         }
 
         // POST: api/ShippingLine
+        [Authorize(Policy = "Permission:ShippingLines.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateShippingLineDto dto)
         {
@@ -32,6 +35,7 @@ namespace FleetWise.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Policy = "Permission:ShippingLines.Update")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, UpdateShippingLineDto dto)
         {
@@ -45,6 +49,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:ShippingLines.Delete")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

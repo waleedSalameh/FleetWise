@@ -8,18 +8,20 @@ using FleetWise.DAL.Entities.Containers.InternationalExport;
 using FleetWise.DAL.Entities.Containers.InternationalIncoming;
 using FleetWise.DAL.Entities.Customers;
 using FleetWise.DAL.Entities.Fuel;
+using FleetWise.DAL.Entities.Identity;
 using FleetWise.DAL.Entities.Maintenance;
 using FleetWise.DAL.Entities.Maintenance.FleetWise.DAL.Entities.Maintenance;
 using FleetWise.DAL.Entities.Vehicles;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace FleetWise.DAL.Data
 {
-    public class FleetWiseDbContext:DbContext
+    public class FleetWiseDbContext : IdentityDbContext<ApplicationUser>
     {
-        public FleetWiseDbContext(DbContextOptions<FleetWiseDbContext> options): base(options)
-        {
-        }
+        public FleetWiseDbContext(DbContextOptions<FleetWiseDbContext> options)
+            : base(options) { }
 
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<Driver> Drivers { get; set; }
@@ -33,8 +35,8 @@ namespace FleetWise.DAL.Data
         public DbSet<DeliveryLocation> DeliveryLocations { get; set; }
         public DbSet<ExportAqabaBooking> ExportAqabaBookings { get; set; }
         public DbSet<ExportAqabaContainer> ExportAqabaContainers { get; set; }
-        public DbSet<InternationalIncoming>InternationalIncomings { get; set; }
-        public DbSet<Customer>Customers { get; set; }
+        public DbSet<InternationalIncoming> InternationalIncomings { get; set; }
+        public DbSet<Customer> Customers { get; set; }
         public DbSet<InternationalExport> InternationalExports { get; set; }
         public DbSet<InlandTransport> InlandTransports { get; set; }
         public DbSet<ExternalVehicles> ExternalVehicles { get; set; }
@@ -50,31 +52,17 @@ namespace FleetWise.DAL.Data
         public DbSet<OilStockMovement> OilStockMovements { get; set; }
         public DbSet<SparePart> SpareParts { get; set; }
         public DbSet<SparePartMovement> SparePartMovements { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<UserPermissionOverride> UserPermissionOverrides { get; set; }
+        public DbSet<AdminAuditLog> AdminAuditLogs { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.ApplyConfigurationsFromAssembly(
-                typeof(VehicleConfiguration).Assembly);
-
-            // Detect overlapping updates consistently across persisted FleetWise entities.
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes()
-                         .Where(entityType =>
-                             !entityType.IsOwned() &&
-                             !entityType.HasSharedClrType &&
-                             entityType.FindPrimaryKey() is not null))
-            {
-                modelBuilder.Entity(entityType.ClrType)
-                    .Property<byte[]>("RowVersion")
-                    .IsRequired()
-                    .IsRowVersion();
-            }
-
-           
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(VehicleConfiguration).Assembly);
         }
-
-      
     }
-
 }
-

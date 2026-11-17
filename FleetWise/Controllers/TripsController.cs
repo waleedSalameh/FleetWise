@@ -1,4 +1,5 @@
-﻿
+using Microsoft.AspNetCore.Authorization;
+
 using FleetWise.BLL.DTOs.Trips;
 using FleetWise.BLL.Interface;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@ namespace FleetWise.API.Controllers
             _tripService = tripService;
         }
 
+        [Authorize(Policy = "Permission:Trips.View")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -24,6 +26,7 @@ namespace FleetWise.API.Controllers
             return Ok(trips);
         }
 
+        [Authorize(Policy = "Permission:Trips.View")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -40,6 +43,7 @@ namespace FleetWise.API.Controllers
             return Ok(trip);
         }
 
+        [Authorize(Policy = "Permission:Trips.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateTripDto dto)
         {
@@ -72,6 +76,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:Trips.Update")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UpdateTripDto dto)
         {
@@ -108,6 +113,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:Trips.Delete")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

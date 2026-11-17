@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Maintenance.SparePartMovements;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Maintenance.SparePartMovements;
 using FleetWise.BLL.Interface;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +17,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // GET: api/SparePartMovements
+        [Authorize(Policy = "Permission:SparePartMovements.View")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -31,6 +33,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // GET: api/SparePartMovements/5
+        [Authorize(Policy = "Permission:SparePartMovements.View")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -50,6 +53,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // GET: api/SparePartMovements/spare-part/5
+        [Authorize(Policy = "Permission:SparePartMovements.View")]
         [HttpGet("spare-part/{sparePartId}")]
         public async Task<IActionResult> GetBySparePartId(int sparePartId)
         {
@@ -65,6 +69,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // GET: api/SparePartMovements/stock/5
+        [Authorize(Policy = "Permission:SparePartMovements.View")]
         [HttpGet("stock/{sparePartId}")]
         public async Task<IActionResult> GetCurrentStock(int sparePartId)
         {
@@ -80,6 +85,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // POST: api/SparePartMovements
+        [Authorize(Policy = "Permission:SparePartMovements.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateSparePartMovementDto dto)
         {

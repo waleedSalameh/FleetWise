@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Containers.ExportAqaba;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Containers.ExportAqaba;
 using FleetWise.BLL.Interface.Containers;
 using FleetWise.BLL.Interface.Containers.ExportAqaba;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ namespace FleetWise.API.Controllers
             _containerService = containerService;
         }
 
+        [Authorize(Policy = "Permission:ExportAqabaContainers.View")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -28,6 +30,7 @@ namespace FleetWise.API.Controllers
             return Ok(container);
         }
 
+        [Authorize(Policy = "Permission:ExportAqabaContainers.Create")]
         [HttpPost("{bookingId}")]
         public async Task<IActionResult> Create(
             int bookingId,
@@ -47,6 +50,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:ExportAqabaContainers.Update")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(
             int id,
@@ -67,6 +71,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:ExportAqabaContainers.Delete")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

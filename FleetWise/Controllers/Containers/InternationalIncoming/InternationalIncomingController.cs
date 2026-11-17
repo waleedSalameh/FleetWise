@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using FleetWise.BLL.DTOs.Containers.InternationalIncoming;
 using FleetWise.BLL.Interface.Containers.InternationalIncoming;
 using Microsoft.AspNetCore.Mvc;
@@ -15,12 +16,14 @@ namespace FleetWise.API.Controllers.Containers.InternationalIncoming
             _incomingService = incomingService;
         }
 
+        [Authorize(Policy = "Permission:InternationalIncoming.View")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             return Ok(await _incomingService.GetAllAsync());
         }
 
+        [Authorize(Policy = "Permission:InternationalIncoming.View")]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -32,6 +35,7 @@ namespace FleetWise.API.Controllers.Containers.InternationalIncoming
             return Ok(incoming);
         }
 
+        [Authorize(Policy = "Permission:InternationalIncoming.Create")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateInternationalIncomingDto dto)
         {
@@ -46,6 +50,7 @@ namespace FleetWise.API.Controllers.Containers.InternationalIncoming
             }
         }
 
+        [Authorize(Policy = "Permission:InternationalIncoming.Update")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateInternationalIncomingDto dto)
         {
@@ -64,6 +69,7 @@ namespace FleetWise.API.Controllers.Containers.InternationalIncoming
             }
         }
 
+        [Authorize(Policy = "Permission:InternationalIncoming.Delete")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

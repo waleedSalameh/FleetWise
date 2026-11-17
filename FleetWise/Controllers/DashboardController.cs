@@ -1,4 +1,5 @@
 ﻿using FleetWise.BLL.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FleetWise.API.Controllers
@@ -14,6 +15,7 @@ namespace FleetWise.API.Controllers
             _dashboardService = dashboardService;
         }
 
+        [Authorize(Policy = "Permission:Dashboard.View")]
         [HttpGet]
         public async Task<IActionResult> GetDashboard()
         {

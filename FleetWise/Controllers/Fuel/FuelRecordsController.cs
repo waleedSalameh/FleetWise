@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.FuelRecords;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.FuelRecords;
 using FleetWise.BLL.Interface.Fuel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,12 +17,14 @@ namespace FleetWise.API.Controllers.Fuel
             _fuelRecord = fuelRecord;
         }
 
+        [Authorize(Policy = "Permission:FuelRecords.View")]
         [HttpGet]
         public async Task<ActionResult<List<FuelRecordDto>>> GetAll()
         {
             return Ok(await _fuelRecord.GetAllAsync());
         }
 
+        [Authorize(Policy = "Permission:FuelRecords.View")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<FuelRecordDto>> GetById(int id)
         {
@@ -33,12 +36,14 @@ namespace FleetWise.API.Controllers.Fuel
             return Ok(record);
         }
 
+        [Authorize(Policy = "Permission:FuelRecords.Create")]
         [HttpPost]
         public async Task<IActionResult> CreateExternal(CreateFuelRecordDto dto)
         {
             return await CreateExternalInternal(dto);
         }
 
+        [Authorize(Policy = "Permission:FuelRecords.Create")]
         [HttpPost("external")]
         public async Task<IActionResult> CreateExternalRoute(CreateFuelRecordDto dto)
         {
@@ -62,6 +67,7 @@ namespace FleetWise.API.Controllers.Fuel
             }
         }
 
+        [Authorize(Policy = "Permission:FuelRecords.Create")]
         [HttpPost("internal")]
         public async Task<IActionResult> CreateInternal(CreateInternalFuelRecordDto dto)
         {
@@ -81,6 +87,7 @@ namespace FleetWise.API.Controllers.Fuel
             }
         }
 
+        [Authorize(Policy = "Permission:FuelRecords.Update")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, UpdateFuelRecordDto dto)
         {
@@ -103,6 +110,7 @@ namespace FleetWise.API.Controllers.Fuel
             }
         }
 
+        [Authorize(Policy = "Permission:FuelRecords.Delete")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

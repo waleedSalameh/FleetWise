@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using FleetWise.BLL.DTOs.FuelRecords;
 using FleetWise.BLL.Interface.Fuel;
 using Microsoft.AspNetCore.Mvc;
@@ -8,10 +9,12 @@ namespace FleetWise.API.Controllers.Fuel;
 public class VehicleFuelMeasurementsController(IVehicleFuelMeasurementService service)
     : ControllerBase
 {
+    [Authorize(Policy = "Permission:VehicleFuelMeasurements.View")]
     [HttpGet]
     public async Task<ActionResult<List<FuelMeasurementDto>>> History(int vehicleId) =>
         Ok(await service.GetHistoryAsync(vehicleId));
 
+    [Authorize(Policy = "Permission:VehicleFuelMeasurements.Create")]
     [HttpPost]
     public async Task<ActionResult<FuelMeasurementDto>> Create(
         int vehicleId,
@@ -34,6 +37,7 @@ public class VehicleFuelMeasurementsController(IVehicleFuelMeasurementService se
         }
     }
 
+    [Authorize(Policy = "Permission:VehicleFuelMeasurements.Approve")]
     [HttpPost("{id:long}/approve")]
     public async Task<ActionResult<FuelMeasurementDto>> Approve(
         long id,

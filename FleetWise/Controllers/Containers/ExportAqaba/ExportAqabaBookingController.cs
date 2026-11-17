@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Containers.ExportAqaba;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Containers.ExportAqaba;
 using FleetWise.BLL.Interface.Containers;
 using FleetWise.BLL.Interface.Containers.ExportAqaba;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@ namespace FleetWise.API.Controllers
             _bookingService = bookingService;
         }
 
+        [Authorize(Policy = "Permission:ExportAqabaBookings.View")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -23,6 +25,7 @@ namespace FleetWise.API.Controllers
             return Ok(bookings);
         }
 
+        [Authorize(Policy = "Permission:ExportAqabaBookings.View")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -34,6 +37,7 @@ namespace FleetWise.API.Controllers
             return Ok(booking);
         }
 
+        [Authorize(Policy = "Permission:ExportAqabaBookings.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateExportAqabaBookingDto dto)
         {
@@ -52,6 +56,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:ExportAqabaBookings.Update")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(
             int id,
@@ -72,6 +77,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:ExportAqabaBookings.Delete")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

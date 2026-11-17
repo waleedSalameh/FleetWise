@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Maintenance.OilMovements;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Maintenance.OilMovements;
 using FleetWise.BLL.Interface;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +17,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // GET: api/OilMovements
+        [Authorize(Policy = "Permission:OilMovements.View")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -31,6 +33,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // GET: api/OilMovements/5
+        [Authorize(Policy = "Permission:OilMovements.View")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -50,6 +53,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // GET: api/OilMovements/oil/1
+        [Authorize(Policy = "Permission:OilMovements.View")]
         [HttpGet("oil/{oilId}")]
         public async Task<IActionResult> GetByOilId(int oilId)
         {
@@ -65,6 +69,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // GET: api/OilMovements/stock/1
+        [Authorize(Policy = "Permission:OilMovements.View")]
         [HttpGet("stock/{oilId}")]
         public async Task<IActionResult> GetCurrentStock(int oilId)
         {
@@ -80,6 +85,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // POST: api/OilMovements
+        [Authorize(Policy = "Permission:OilMovements.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateOilMovementDto dto)
         {

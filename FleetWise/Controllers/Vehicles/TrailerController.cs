@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Vehicles.Trailer;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Vehicles.Trailer;
 using FleetWise.BLL.Interface.Vehicles;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +16,7 @@ namespace FleetWise.API.Controllers
             _trailerService = trailerService;
         }
 
+        [Authorize(Policy = "Permission:Trailers.View")]
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
@@ -30,6 +32,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:Trailers.View")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult> GetById(int id)
         {
@@ -49,6 +52,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:Trailers.Create")]
         [HttpPost]
         public async Task<ActionResult> Create(CreateTrailerDto dto)
         {
@@ -65,6 +69,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:Trailers.Update")]
         [HttpPut("{id:int}")]
         public async Task<ActionResult> Update(int id, UpdateTrailerDto dto)
         {
@@ -84,6 +89,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:Trailers.Delete")]
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {

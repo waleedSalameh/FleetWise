@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Containers.ExportAqaba;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Containers.ExportAqaba;
 using FleetWise.BLL.Interface.Containers.IncomingAqaba;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +18,7 @@ namespace FleetWise.API.Controllers.Containers.IncomingAqaba
         }
 
         // GET: api/IncomingAqabaContainer/5
+        [Authorize(Policy = "Permission:IncomingAqabaContainers.View")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -37,6 +39,7 @@ namespace FleetWise.API.Controllers.Containers.IncomingAqaba
 
         // POST: api/IncomingAqabaContainer/5
         // Add container to bill with ID 5
+        [Authorize(Policy = "Permission:IncomingAqabaContainers.Create")]
         [HttpPost("{billId}")]
         public async Task<IActionResult> Create(
             int billId,
@@ -58,6 +61,7 @@ namespace FleetWise.API.Controllers.Containers.IncomingAqaba
         }
 
         // PUT: api/IncomingAqabaContainer/10
+        [Authorize(Policy = "Permission:IncomingAqabaContainers.Update")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(
             int id,
@@ -79,6 +83,7 @@ namespace FleetWise.API.Controllers.Containers.IncomingAqaba
         }
 
         // DELETE: api/IncomingAqabaContainer/10
+        [Authorize(Policy = "Permission:IncomingAqabaContainers.Delete")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Vehicles.VehicleAssignments;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Vehicles.VehicleAssignments;
 using FleetWise.BLL.Interface.Vehicles;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ namespace FleetWise.API.Controllers
             _vehicleAssignment = vehicleAssignment;
         }
 
+        [Authorize(Policy = "Permission:VehicleAssignments.View")]
         [HttpGet]
         public async Task<ActionResult<List<VehicleAssignmentDto>>> GetAll()
         {
@@ -24,6 +26,7 @@ namespace FleetWise.API.Controllers
             return Ok(assignments);
         }
 
+        [Authorize(Policy = "Permission:VehicleAssignments.View")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<VehicleAssignmentDto>> GetById(int id)
         {
@@ -38,6 +41,7 @@ namespace FleetWise.API.Controllers
             return Ok(assignment);
         }
 
+        [Authorize(Policy = "Permission:VehicleAssignments.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateVehicleAssignmentDto dto)
         {
@@ -67,6 +71,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:VehicleAssignments.Update")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(
             int id,
@@ -102,6 +107,7 @@ namespace FleetWise.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Permission:VehicleAssignments.Delete")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

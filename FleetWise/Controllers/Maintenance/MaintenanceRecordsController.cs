@@ -1,4 +1,5 @@
-﻿
+using Microsoft.AspNetCore.Authorization;
+
 using FleetWise.BLL.DTOs.Maintenance.MaintenanceRecords;
 using FleetWise.BLL.Interface.Maintenance;
 using Microsoft.AspNetCore.Http;
@@ -19,6 +20,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // GET: api/MaintenanceRecords
+        [Authorize(Policy = "Permission:Maintenance.View")]
         [HttpGet]
         public async Task<ActionResult<List<MaintenanceRecordDto>>> GetAll()
         {
@@ -37,6 +39,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // GET: api/MaintenanceRecords/5
+        [Authorize(Policy = "Permission:Maintenance.View")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<MaintenanceRecordDto>> GetById(int id)
         {
@@ -63,6 +66,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // POST: api/MaintenanceRecords
+        [Authorize(Policy = "Permission:Maintenance.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(
             [FromBody] CreateMaintenanceRecordDto dto)
@@ -92,6 +96,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // PUT: api/MaintenanceRecords/5
+        [Authorize(Policy = "Permission:Maintenance.Update")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(
             int id,
@@ -127,6 +132,7 @@ namespace FleetWise.API.Controllers.Maintenance
         }
 
         // DELETE: api/MaintenanceRecords/5
+        [Authorize(Policy = "Permission:Maintenance.Delete")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

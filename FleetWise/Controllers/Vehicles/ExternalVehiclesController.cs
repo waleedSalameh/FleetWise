@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Vehicles.ExternalVehicles;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Vehicles.ExternalVehicles;
 using FleetWise.BLL.Interface.Vehicles;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@ namespace FleetWise.API.Controllers.Vehicles
             _service = service;
         }
 
+        [Authorize(Policy = "Permission:ExternalVehicles.View")]
         [HttpGet]
         public async Task<ActionResult<List<ExternalVehiclesResponseDto>>> GetAll()
         {
@@ -23,6 +25,7 @@ namespace FleetWise.API.Controllers.Vehicles
             return Ok(vehicles);
         }
 
+        [Authorize(Policy = "Permission:ExternalVehicles.View")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ExternalVehiclesResponseDto>> GetById(int id)
         {
@@ -37,6 +40,7 @@ namespace FleetWise.API.Controllers.Vehicles
             return Ok(vehicle);
         }
 
+        [Authorize(Policy = "Permission:ExternalVehicles.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateExternalVehiclesDto dto)
         {
@@ -61,6 +65,7 @@ namespace FleetWise.API.Controllers.Vehicles
             }
         }
 
+        [Authorize(Policy = "Permission:ExternalVehicles.Delete")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

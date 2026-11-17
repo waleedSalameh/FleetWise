@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.FuelRecords;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.FuelRecords;
 using FleetWise.BLL.Interface.Fuel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,7 @@ namespace FleetWise.API.Controllers.Fuel
         {
             _fuelPurchaseService = fuelPurchaseService;
         }
+        [Authorize(Policy = "Permission:FuelPurchases.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateFuelPurchaseDto dto)
         {
@@ -38,6 +40,7 @@ namespace FleetWise.API.Controllers.Fuel
                 });
             }
         }
+        [Authorize(Policy = "Permission:FuelPurchases.View")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -57,6 +60,7 @@ namespace FleetWise.API.Controllers.Fuel
             }
         }
 
+        [Authorize(Policy = "Permission:FuelPurchases.View")]
         [HttpGet("summary")]
         public async Task<IActionResult> GetSummary()
         {

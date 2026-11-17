@@ -1,4 +1,5 @@
-﻿using FleetWise.BLL.DTOs.Maintenance.Oils;
+using Microsoft.AspNetCore.Authorization;
+using FleetWise.BLL.DTOs.Maintenance.Oils;
 using FleetWise.BLL.Interface;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +16,7 @@ namespace FleetWise.API.Controllers.Maintenance
             _oilService = oilService;
         }
 
+        [Authorize(Policy = "Permission:Oils.View")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -29,6 +31,7 @@ namespace FleetWise.API.Controllers.Maintenance
             }
         }
 
+        [Authorize(Policy = "Permission:Oils.View")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -47,6 +50,7 @@ namespace FleetWise.API.Controllers.Maintenance
             }
         }
 
+        [Authorize(Policy = "Permission:Oils.Create")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateOilDto dto)
         {
@@ -66,6 +70,7 @@ namespace FleetWise.API.Controllers.Maintenance
             }
         }
 
+        [Authorize(Policy = "Permission:Oils.Update")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UpdateOilDto dto)
         {
@@ -84,6 +89,7 @@ namespace FleetWise.API.Controllers.Maintenance
             }
         }
 
+        [Authorize(Policy = "Permission:Oils.Delete")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
